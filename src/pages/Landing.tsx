@@ -8,18 +8,13 @@ import {
   Search,
   FileText,
   Shield,
-  ChevronRight,
   Star,
   Menu,
   X,
   ArrowRight,
   Zap,
   Layers,
-  BarChart3,
   Terminal,
-  Users,
-  Clock,
-  BookOpen,
   DollarSign,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -107,29 +102,46 @@ const terminalLines = [
 function TerminalPreview() {
   const [visibleLines, setVisibleLines] = useState(0);
   const [cursorVisible, setCursorVisible] = useState(true);
+  const mountedRef = useRef(true);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
+  const startAnimation = () => {
+    // Clear previous timers
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+    setVisibleLines(0);
 
     terminalLines.forEach((line, i) => {
-      const t = setTimeout(() => setVisibleLines((v) => Math.max(v, i + 1)), line.delay + 300);
-      timers.push(t);
+      const t = setTimeout(() => {
+        if (!mountedRef.current) return;
+        setVisibleLines((v) => Math.max(v, i + 1));
+      }, line.delay + 300);
+      timersRef.current.push(t);
     });
+
+    // Loop after all lines shown
+    const lastDelay = terminalLines[terminalLines.length - 1].delay + 4000;
+    const loopT = setTimeout(() => {
+      if (!mountedRef.current) return;
+      startAnimation();
+    }, lastDelay);
+    timersRef.current.push(loopT);
+  };
+
+  useEffect(() => {
+    mountedRef.current = true;
+    startAnimation();
 
     // Blinking cursor
     const cursorTimer = setInterval(() => {
+      if (!mountedRef.current) return;
       setCursorVisible((v) => !v);
     }, 530);
 
-    // Loop
-    const loopTimer = setTimeout(() => {
-      setVisibleLines(0);
-    }, terminalLines[terminalLines.length - 1].delay + 4000);
-
     return () => {
-      timers.forEach(clearTimeout);
+      mountedRef.current = false;
+      timersRef.current.forEach(clearTimeout);
       clearInterval(cursorTimer);
-      clearTimeout(loopTimer);
     };
   }, []);
 
@@ -546,7 +558,7 @@ export default function Landing() {
             <span className="text-xs text-gray-500 font-mono">StartupWiki Terminal</span>
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-[11px] text-gray-600 font-mono">Built with AI + NVIDIA NIM</span>
+            <span className="text-[11px] text-gray-600 font-mono">AI + NVIDIA NIM</span>
             <span className="text-[11px] text-gray-600 font-mono">© 2026</span>
           </div>
         </div>

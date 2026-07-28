@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import Badge from "@/components/shared/Badge";
 import { formatCurrency } from "@/lib/utils";
@@ -12,7 +13,7 @@ const stageVariant: Record<string, "default" | "success" | "warning" | "info" | 
   "Series C+": "warning",
 };
 
-export default function CompanyCard({ company }: { company: Startup }) {
+const CompanyCard = memo(function CompanyCard({ company }: { company: Startup }) {
   return (
     <Link to={`/company/${company.id}`} className="block group">
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-4 card-hover">
@@ -55,7 +56,9 @@ export default function CompanyCard({ company }: { company: Startup }) {
             {company.founded}
           </span>
         </div>
-      </div>
-    </Link>
+      </div>    </Link>
   );
-}
+});
+
+export default CompanyCard;
+

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface CardProps {
@@ -8,7 +9,7 @@ interface CardProps {
   onClick?: () => void;
 }
 
-export default function Card({ children, className, hover = false, padding = "md", onClick }: CardProps) {
+const Card = memo(function Card({ children, className, hover = false, padding = "md", onClick }: CardProps) {
   const paddings = { sm: "p-3.5", md: "p-4", lg: "p-5" };
   return (
     <div
@@ -23,4 +24,6 @@ export default function Card({ children, className, hover = false, padding = "md
       {children}
     </div>
   );
-}
+});
+
+export default Card;

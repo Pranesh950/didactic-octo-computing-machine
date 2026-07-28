@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -21,7 +22,7 @@ interface SidebarProps {
   userEmail?: string;
 }
 
-export default function Sidebar({ onOpenCommand, userEmail }: SidebarProps) {
+const Sidebar = memo(function Sidebar({ onOpenCommand, userEmail }: SidebarProps) {
   return (
     <aside className="w-52 bg-[#0a0b0d] text-gray-300 flex flex-col flex-shrink-0 border-r border-gray-800 select-none">
       {/* Logo */}
@@ -89,4 +90,6 @@ export default function Sidebar({ onOpenCommand, userEmail }: SidebarProps) {
       </div>
     </aside>
   );
-}
+});
+
+export default Sidebar;

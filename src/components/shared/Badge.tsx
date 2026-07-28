@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface BadgeProps {
@@ -16,7 +17,7 @@ const variants = {
   neutral: "bg-gray-800 text-gray-300 border-gray-700",
 };
 
-export default function Badge({ children, variant = "default", size = "sm", className }: BadgeProps) {
+const Badge = memo(function Badge({ children, variant = "default", size = "sm", className }: BadgeProps) {
   return (
     <span
       className={cn(
@@ -29,4 +30,6 @@ export default function Badge({ children, variant = "default", size = "sm", clas
       {children}
     </span>
   );
-}
+});
+
+export default Badge;

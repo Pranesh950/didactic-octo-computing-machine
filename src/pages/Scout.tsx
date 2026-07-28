@@ -6,7 +6,6 @@ import {
   Loader2,
   Crosshair,
   FileText,
-  Sparkles,
   PanelRightOpen,
   PanelRightClose,
   Save,
@@ -199,7 +198,6 @@ export default function Scout() {
           <div className="flex items-center gap-2.5">
             <Crosshair className="w-4 h-4 text-accent-400" />
             <h2 className="text-[15px] font-semibold text-gray-0">Scout</h2>
-  
           </div>
           {!workspaceOpen && (
             <button

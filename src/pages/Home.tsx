@@ -65,13 +65,13 @@ export default function Home() {
             <BookOpen className="w-4 h-4 text-accent-400" />
             <h2 className="text-[13px] font-semibold text-gray-200 uppercase tracking-wider">Research</h2>
           </div>
-          <Link to="/research" className="text-[12px] text-accent-400 hover:text-accent-300 flex items-center gap-1 font-mono transition-colors">
+          <Link to="/collections" className="text-[12px] text-accent-400 hover:text-accent-300 flex items-center gap-1 font-mono transition-colors">
             View all <ChevronRight className="w-3 h-3" />
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {researchProjects.slice(0, 3).map((project) => (
-            <Link key={project.id} to="/research">
+            <Link key={project.id} to="/collections">
               <Card padding="sm" hover>
                 <div className="flex items-start justify-between">
                   <div>

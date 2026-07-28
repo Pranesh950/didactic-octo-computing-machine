@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Search, ArrowRight, Command } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ interface Props {
   onClose: () => void;
 }
 
-export default function CommandPalette({ open, onClose }: Props) {
+const CommandPalette = memo(function CommandPalette({ open, onClose }: Props) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -184,4 +184,6 @@ export default function CommandPalette({ open, onClose }: Props) {
       </div>
     </div>
   );
-}
+});
+
+export default CommandPalette;

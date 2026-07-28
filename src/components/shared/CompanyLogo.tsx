@@ -1,4 +1,6 @@
-export default function CompanyLogo({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
+import { memo } from "react";
+
+const CompanyLogo = memo(function CompanyLogo({ name, size = "md" }: { name: string; size?: "sm" | "md" | "lg" }) {
   const sizes = { sm: "w-6 h-6 text-xs", md: "w-10 h-10 text-sm", lg: "w-14 h-14 text-lg" };
   const initials = name
     .split(" ")
@@ -9,9 +11,11 @@ export default function CompanyLogo({ name, size = "md" }: { name: string; size?
 
   return (
     <div
-      className={`${sizes[size]} rounded-md bg-brand-50 border border-brand-100 flex items-center justify-center font-semibold text-brand-700 flex-shrink-0`}
+      className={`${sizes[size]} rounded-md bg-accent-500/10 border border-accent-500/20 flex items-center justify-center font-semibold text-accent-400 flex-shrink-0`}
     >
       {initials}
     </div>
   );
-}
+});
+
+export default CompanyLogo;

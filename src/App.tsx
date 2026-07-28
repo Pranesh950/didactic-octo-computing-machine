@@ -28,9 +28,12 @@ function Settings() {
 }
 
 export default function App() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading } = useAuth();
   const [commandOpen, setCommandOpen] = useState(false);
   const navigate = useNavigate();
+
+  const openCommand = useCallback(() => setCommandOpen(true), []);
+  const closeCommand = useCallback(() => setCommandOpen(false), []);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -80,7 +83,7 @@ export default function App() {
   return (
     <div className="flex h-screen overflow-hidden bg-[#0d0e10]">
       <Sidebar
-        onOpenCommand={() => setCommandOpen(true)}
+        onOpenCommand={openCommand}
         userEmail={user.email ?? undefined}
       />
       <main className="flex-1 overflow-y-auto bg-[#0d0e10]">
@@ -93,7 +96,7 @@ export default function App() {
           <Route path="/company/:id" element={<CompanyDetail />} />
         </Routes>
       </main>
-      <CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+      <CommandPalette open={commandOpen} onClose={closeCommand} />
     </div>
   );
 }
