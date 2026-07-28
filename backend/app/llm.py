@@ -29,12 +29,12 @@ def _build_llm(model: str, **overrides: Any) -> ChatOpenAI:
 
 
 def get_primary_llm(**overrides: Any) -> ChatOpenAI:
-    """Get the primary (most capable) model — Llama 3.3 70B."""
+    """Get the primary (most capable) model — Llama 3.3 70B (free on NVIDIA NIM)."""
     return _build_llm(config.primary_model, **overrides)
 
 
 def get_fallback_llm(**overrides: Any) -> ChatOpenAI:
-    """Get the fallback model — Llama 3.1 8B."""
+    """Get the fallback model — Llama 3.1 8B (lightweight, free on NVIDIA NIM)."""
     return _build_llm(config.fallback_model, **overrides)
 
 
