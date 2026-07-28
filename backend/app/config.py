@@ -15,7 +15,7 @@ class Config:
     api_key: str = os.getenv("LLM_API_KEY", "")
     primary_model: str = os.getenv(
         "LLM_PRIMARY_MODEL",
-        "meta/llama-3.3-70b-instruct",
+        "meta/llama-3.1-70b-instruct",
     )
     fallback_model: str = os.getenv(
         "LLM_FALLBACK_MODEL",
