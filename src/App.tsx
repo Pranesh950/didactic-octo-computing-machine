@@ -5,9 +5,7 @@ import CommandPalette from "@/components/layout/CommandPalette";
 import Home from "@/pages/Home";
 import Discover from "@/pages/Discover";
 import Scout from "@/pages/Scout";
-import Research from "@/pages/Research";
 import Collections from "@/pages/Collections";
-import Briefing from "@/pages/Briefing";
 import CompanyDetail from "@/pages/CompanyDetail";
 import { useAuth } from "@/contexts/AuthContext";
 import Landing from "@/pages/Landing";
@@ -45,9 +43,7 @@ export default function App() {
           "1": "/",
           "2": "/discover",
           "3": "/scout",
-          "4": "/research",
-          "5": "/collections",
-          "6": "/briefing",
+          "4": "/collections",
         };
         if (shortcuts[e.key]) {
           e.preventDefault();
@@ -92,9 +88,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/scout" element={<Scout />} />
-          <Route path="/research" element={<Research />} />
           <Route path="/collections" element={<Collections />} />
-          <Route path="/briefing" element={<Briefing />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/company/:id" element={<CompanyDetail />} />
         </Routes>

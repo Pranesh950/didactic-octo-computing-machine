@@ -15,7 +15,6 @@ const commands: CommandItem[] = [
   { id: "home", label: "Home", category: "Navigation", to: "/" },
   { id: "discover", label: "Discover startups", category: "Navigation", to: "/discover" },
   { id: "scout", label: "Scout — AI research", category: "Navigation", to: "/scout" },
-  { id: "research", label: "Research projects", category: "Navigation", to: "/research" },
   { id: "collections", label: "Collections", category: "Navigation", to: "/collections" },
   { id: "settings", label: "Settings", category: "Navigation", to: "/settings" },
   { id: "neural", label: "Go to Neural Labs", category: "Companies", to: "/company/neural-labs" },

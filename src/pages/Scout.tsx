@@ -199,10 +199,7 @@ export default function Scout() {
           <div className="flex items-center gap-2.5">
             <Crosshair className="w-4 h-4 text-accent-400" />
             <h2 className="text-[15px] font-semibold text-gray-0">Scout</h2>
-            <div className="flex items-center gap-1 ml-2">
-              <Sparkles className="w-3 h-3 text-accent-400" />
-              <span className="text-[10px] text-accent-400 font-mono">LangGraph</span>
-            </div>
+  
           </div>
           {!workspaceOpen && (
             <button

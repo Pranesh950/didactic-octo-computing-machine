@@ -38,7 +38,7 @@ const features: Feature[] = [
     icon: Search,
     title: "AI-Powered Company Research",
     description:
-      "Generate comprehensive investment memos on any startup with one query. Our LangGraph agents research funding, team, market, and competitive landscape.",
+      "Generate comprehensive investment memos on any startup with one query. AI agents research funding, team, market, and competitive landscape.",
     gradient: "from-violet-500/20 to-purple-500/5",
   },
   {
@@ -147,7 +147,7 @@ function TerminalPreview() {
           <span className="text-[11px] text-gray-500 font-mono ml-3">Terminal — startupwiki v0.1.0</span>
           <div className="ml-auto flex items-center gap-1.5">
             <Zap className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] text-emerald-400/70 font-mono">LangGraph • NVIDIA NIM</span>
+            <span className="text-[10px] text-emerald-400/70 font-mono">AI • NVIDIA NIM</span>
           </div>
         </div>
 
@@ -240,7 +240,7 @@ const steps = [
   {
     number: "02",
     title: "AI agents research",
-    description: "Our LangGraph agents automatically gather data, analyze markets, evaluate teams, and generate insights.",
+    description: "AI agents automatically gather data, analyze markets, evaluate teams, and generate insights.",
     icon: Bot,
   },
   {
@@ -355,7 +355,7 @@ export default function Landing() {
           {/* Badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-500/10 border border-accent-500/20 text-accent-300 text-[11px] font-mono mb-6 animate-fade-in">
             <Zap className="w-3 h-3" />
-            Powered by LangGraph + NVIDIA NIM
+            Powered by AI + NVIDIA NIM
           </div>
 
           {/* Headline */}
@@ -546,7 +546,7 @@ export default function Landing() {
             <span className="text-xs text-gray-500 font-mono">StartupWiki Terminal</span>
           </div>
           <div className="flex items-center gap-6">
-            <span className="text-[11px] text-gray-600 font-mono">Built with LangGraph + NVIDIA NIM</span>
+            <span className="text-[11px] text-gray-600 font-mono">Built with AI + NVIDIA NIM</span>
             <span className="text-[11px] text-gray-600 font-mono">© 2026</span>
           </div>
         </div>

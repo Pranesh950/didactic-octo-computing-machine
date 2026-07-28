@@ -3,10 +3,7 @@ import {
   LayoutDashboard,
   Search,
   Crosshair,
-  BookOpen,
-  Briefcase,
   FolderOpen,
-  Settings,
   Sparkles,
   Command,
 } from "lucide-react";
@@ -16,8 +13,6 @@ const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Home", shortcut: "H" },
   { to: "/discover", icon: Search, label: "Discover", shortcut: "D" },
   { to: "/scout", icon: Crosshair, label: "Scout", shortcut: "S" },
-  { to: "/briefing", icon: Briefcase, label: "Briefing", shortcut: "B" },
-  { to: "/research", icon: BookOpen, label: "Research", shortcut: "R" },
   { to: "/collections", icon: FolderOpen, label: "Collections", shortcut: "C" },
 ];
 
