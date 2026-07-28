@@ -1,7 +1,8 @@
-"""NVIDIA NIM LLM client with automatic model fallback.
+"""OpenAI-compatible LLM client with automatic model fallback.
 
-Uses langchain-openai's ChatOpenAI pointed at NVIDIA's OpenAI-compatible endpoint.
-Falls back from Llama 3.3 70B → Llama 3.1 8B on failure.
+Uses langchain-openai's ChatOpenAI pointed at any OpenAI-compatible endpoint
+(MiniMax, NVIDIA NIM, OpenAI, Ollama, etc.).
+Falls back from primary model to fallback on failure.
 """
 
 import logging
