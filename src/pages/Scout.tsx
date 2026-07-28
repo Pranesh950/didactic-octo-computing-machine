@@ -1,17 +1,22 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
-  Send,
   CheckCircle2,
-  Circle,
   Loader2,
   Crosshair,
   FileText,
-  PanelRightOpen,
   PanelRightClose,
   Save,
   User,
   Bot,
   Copy,
+  Sparkles,
+  ArrowUp,
+  ChevronRight,
+  Zap,
+  Brain,
+  Search,
+  BarChart3,
+  FileSearch,
 } from "lucide-react";
 import Badge from "@/components/shared/Badge";
 import { cn } from "@/lib/utils";
@@ -24,14 +29,15 @@ type StepStatus = "pending" | "running" | "complete";
 interface AgentStep {
   id: string;
   label: string;
+  icon: React.ElementType;
   status: StepStatus;
 }
 
 const defaultSteps: AgentStep[] = [
-  { id: "routing", label: "Manager routing intent to sub-agent", status: "pending" },
-  { id: "researching", label: "Research agent searching database", status: "pending" },
-  { id: "analyzing", label: "Analyzing companies and market data", status: "pending" },
-  { id: "synthesizing", label: "Manager synthesizing findings", status: "pending" },
+  { id: "routing", label: "Analyzing intent and routing to specialists", icon: Brain, status: "pending" },
+  { id: "researching", label: "Searching across startup database", icon: Search, status: "pending" },
+  { id: "analyzing", label: "Evaluating companies and market dynamics", icon: BarChart3, status: "pending" },
+  { id: "synthesizing", label: "Synthesizing insights into findings", icon: FileSearch, status: "pending" },
 ];
 
 interface ChatMessage {
@@ -43,10 +49,30 @@ interface ChatMessage {
 }
 
 const suggestions = [
-  "Find promising AI robotics startups founded by researchers from top labs",
-  "Map the synthetic biology landscape for companies using generative AI",
-  "Identify early-stage climate tech startups with strong technical moats",
-  "Find AI agent companies building autonomous workflow infrastructure",
+  {
+    title: "AI Robotics",
+    query: "Find promising AI robotics startups founded by researchers from top labs",
+    gradient: "from-violet-500/20 to-purple-600/10",
+    icon: Zap,
+  },
+  {
+    title: "Synthetic Biology",
+    query: "Map the synthetic biology landscape for companies using generative AI",
+    gradient: "from-emerald-500/20 to-teal-600/10",
+    icon: Sparkles,
+  },
+  {
+    title: "Climate Tech",
+    query: "Identify early-stage climate tech startups with strong technical moats",
+    gradient: "from-sky-500/20 to-blue-600/10",
+    icon: Search,
+  },
+  {
+    title: "Agent Infrastructure",
+    query: "Find AI agent companies building autonomous workflow infrastructure",
+    gradient: "from-amber-500/20 to-orange-600/10",
+    icon: Brain,
+  },
 ];
 
 export default function Scout() {
@@ -57,17 +83,16 @@ export default function Scout() {
   const [liveContent, setLiveContent] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [workspaceOpen, setWorkspaceOpen] = useState(true);
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
   const [savedFileId, setSavedFileId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const workspaceScrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, liveContent]);
 
-  // Auto-scroll workspace
   useEffect(() => {
     if (liveContent && workspaceScrollRef.current) {
       workspaceScrollRef.current.scrollTop = workspaceScrollRef.current.scrollHeight;
@@ -89,8 +114,7 @@ export default function Scout() {
     setLiveContent("");
     setSavedFileId(null);
     setMessages((prev) => [...prev, userMsg]);
-    setSteps(defaultSteps.map((s) => ({ ...s, status: "pending" })));
-    setWorkspaceOpen(true);
+    setSteps(defaultSteps.map((s) => ({ ...s, status: "pending" as StepStatus })));
 
     setSteps((prev) =>
       prev.map((s) => (s.id === "routing" ? { ...s, status: "running" } : s)),
@@ -118,7 +142,7 @@ export default function Scout() {
     setQuery("");
 
     try {
-      const result = await runAgentStream(currentQuery, undefined, {
+      await runAgentStream(currentQuery, undefined, {
         onToken: (token) => {
           setLiveContent((prev) => prev + token);
           tokenCount++;
@@ -140,7 +164,6 @@ export default function Scout() {
           setMessages((prev) => [...prev, agentMsg]);
           setSteps((prev) => prev.map((s) => ({ ...s, status: "complete" as StepStatus })));
 
-          // Auto-save to workspace
           const file = await addFile(user!.uid, {
             title: currentQuery.slice(0, 60) + (currentQuery.length > 60 ? "…" : ""),
             type: "research_report",
@@ -151,7 +174,6 @@ export default function Scout() {
           });
           setSavedFileId(file?.id ?? null);
 
-          // Mark the message as saved so the button shows "Saved"
           setMessages((prev) =>
             prev.map((m) =>
               m.id === agentMsg.id ? { ...m, savedToWorkspace: true } : m,
@@ -189,144 +211,254 @@ export default function Scout() {
     );
   }, [user]);
 
+  const hasConversation = messages.length > 0 || isRunning;
+
   return (
-    <div className="flex h-full">
-      {/* ── Left: Chat conversation ── */}
-      <div className={cn("flex flex-col min-w-0 bg-[#0d0e10] transition-all", workspaceOpen ? "flex-1 border-r border-gray-800" : "flex-1")}>
-        {/* Header */}
-        <div className="px-5 py-3.5 border-b border-gray-800 bg-[#0b0c0e] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Crosshair className="w-4 h-4 text-accent-400" />
-            <h2 className="text-[15px] font-semibold text-gray-0">Scout</h2>
+    <div className="flex h-full relative">
+      {/* ── Main Chat Panel ── */}
+      <div className={cn(
+        "flex flex-col min-w-0 bg-[#0d0e10] transition-all duration-300",
+        workspaceOpen ? "flex-1 mr-[420px]" : "flex-1",
+      )}>
+        {/* Header bar */}
+        <div className="px-6 py-3.5 border-b border-gray-800/60 bg-[#0b0c0e]/80 backdrop-blur-sm flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500/20 to-violet-500/10 border border-accent-500/20 flex items-center justify-center">
+              <Crosshair className="w-4 h-4 text-accent-400" />
+            </div>
+            <div>
+              <h2 className="text-[15px] font-semibold text-gray-0 leading-tight">Scout</h2>
+              <p className="text-[11px] text-gray-500 font-medium">AI-powered startup research</p>
+            </div>
           </div>
-          {!workspaceOpen && (
-            <button
-              onClick={() => setWorkspaceOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] text-gray-500 hover:text-gray-300 hover:bg-gray-900 transition-colors font-mono"
-            >
-              <PanelRightOpen className="w-3.5 h-3.5" />
-              Open workspace
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {hasConversation && !workspaceOpen && (
+              <button
+                onClick={() => setWorkspaceOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-200 hover:bg-gray-800/70 transition-all font-medium"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                Research panel
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Chat area */}
         <div className="flex-1 overflow-y-auto">
-          {/* Empty state */}
-          {messages.length === 0 && !isRunning && (
-            <div className="p-6 space-y-3">
-              <div className="flex items-center gap-2 mb-4">
-                <Bot className="w-4 h-4 text-accent-400" />
-                <p className="text-[12px] text-gray-400 font-mono">Scout is ready. Try a research query:</p>
+          {/* ── Empty State ── */}
+          {!hasConversation && (
+            <div className="flex flex-col items-center justify-center h-full px-6 py-12">
+              {/* Hero section */}
+              <div className="text-center max-w-2xl mx-auto animate-fade-in">
+                {/* Animated icon */}
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-accent-500/15 via-violet-500/10 to-accent-500/5 border border-accent-500/15 flex items-center justify-center shadow-lg shadow-accent-500/5">
+                    <Crosshair className="w-9 h-9 text-accent-400" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center">
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  </div>
+                </div>
+
+                <h1 className="text-2xl font-bold text-gray-0 mb-2 tracking-tight">
+                  Research any market,
+                </h1>
+                <p className="text-lg text-gray-400 leading-relaxed mb-1">
+                  discover startups, and surface investment opportunities
+                </p>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Scout orchestrates specialized AI agents to research, analyze, and synthesize insights from across the startup ecosystem.
+                </p>
               </div>
-              {suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setQuery(s)}
-                  className="block w-full text-left p-3 bg-gray-900 border border-gray-800 rounded-lg text-[13px] text-gray-400 hover:border-accent-500/30 hover:text-gray-200 transition-all font-mono"
-                >
-                  <span className="text-accent-400 mr-2">→</span>
-                  {s}
-                </button>
-              ))}
+
+              {/* Suggestion cards */}
+              <div className="mt-10 w-full max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: "0.1s" }}>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center">
+                  Try asking about
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {suggestions.map((s, i) => {
+                    const Icon = s.icon;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setQuery(s.query);
+                          inputRef.current?.focus();
+                        }}
+                        className="group relative text-left p-4 rounded-xl border border-gray-800/60 bg-gray-900/40 hover:bg-gray-900/80 hover:border-gray-700/60 transition-all duration-200 overflow-hidden"
+                      >
+                        <div className={cn(
+                          "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br",
+                          s.gradient,
+                        )} />
+                        <div className="relative z-10 flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                            <Icon className="w-3.5 h-3.5 text-accent-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-gray-200 mb-0.5">{s.title}</p>
+                            <p className="text-[12px] text-gray-500 leading-relaxed line-clamp-2">{s.query}</p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Quick input (centered, prominent) */}
+              <div className="mt-10 w-full max-w-xl mx-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
+                <div className="relative">
+                  <input
+                    ref={inputRef}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleRun()}
+                    placeholder="Ask Scout anything about startups, markets, or trends..."
+                    className="w-full pl-5 pr-14 py-3.5 bg-gray-900/60 border border-gray-800/60 rounded-2xl text-[14px] text-gray-0 placeholder:text-gray-600 focus:outline-none focus:border-accent-500/40 focus:bg-gray-900/90 transition-all duration-200 shadow-sm"
+                  />
+                  <button
+                    onClick={handleRun}
+                    disabled={!query.trim()}
+                    className={cn(
+                      "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                      query.trim()
+                        ? "bg-white text-gray-900 hover:bg-gray-100 hover:scale-[1.04] active:scale-[0.97]"
+                        : "bg-gray-800 text-gray-600",
+                    )}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Messages */}
+          {/* ── Conversation ── */}
           {messages.map((msg) => (
-            <div key={msg.id} className={cn("px-6 py-4", msg.role === "agent" && "bg-gray-950/30 border-y border-gray-800/50")}>
-              <div className="max-w-3xl mx-auto">
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-0.5",
-                    msg.role === "user" ? "bg-accent-500/20" : "bg-emerald-500/20",
-                  )}>
-                    {msg.role === "user"
-                      ? <User className="w-3.5 h-3.5 text-accent-400" />
-                      : <Bot className="w-3.5 h-3.5 text-emerald-400" />
-                    }
+            <div
+              key={msg.id}
+              className={cn(
+                "px-6 py-5 transition-colors duration-150",
+                msg.role === "agent" ? "bg-gray-950/30" : "",
+              )}
+            >
+              <div className="max-w-[720px] mx-auto flex items-start gap-4">
+                {/* Avatar */}
+                <div className={cn(
+                  "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
+                  msg.role === "user"
+                    ? "bg-gradient-to-br from-accent-500/20 to-accent-500/10 border border-accent-500/20"
+                    : "bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 border border-emerald-500/20",
+                )}>
+                  {msg.role === "user"
+                    ? <User className="w-3.5 h-3.5 text-accent-400" />
+                    : <Bot className="w-3.5 h-3.5 text-emerald-400" />
+                  }
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  {/* Message header */}
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={cn(
+                      "text-[12px] font-semibold",
+                      msg.role === "user" ? "text-gray-400" : "text-emerald-400",
+                    )}>
+                      {msg.role === "user" ? "You" : "Scout"}
+                    </span>
+                    <span className="text-[11px] text-gray-600">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-semibold text-gray-400 font-mono">
-                        {msg.role === "user" ? "You" : "Scout Agent"}
-                      </span>
-                      <span className="text-[10px] text-gray-600 font-mono">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <div className="text-[13px] text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                      {msg.content}
-                    </div>
-                    {msg.role === "agent" && (
-                      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-800/50">
-                        {msg.savedToWorkspace ? (
-                          <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Saved to workspace
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => handleSaveToWorkspace(msg)}
-                            className="text-[10px] text-gray-500 hover:text-accent-400 font-mono flex items-center gap-1 transition-colors"
-                          >
-                            <Save className="w-3 h-3" />
-                            Save to workspace
-                          </button>
-                        )}
+
+                  {/* Message content */}
+                  <div className="text-[14px] text-gray-300 leading-[1.7] whitespace-pre-wrap">
+                    {msg.content}
+                  </div>
+
+                  {/* Agent action bar */}
+                  {msg.role === "agent" && (
+                    <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-800/50">
+                      {msg.savedToWorkspace ? (
+                        <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Saved to workspace
+                        </span>
+                      ) : (
                         <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(msg.content);
-                          }}
-                          className="text-[10px] text-gray-500 hover:text-gray-400 font-mono flex items-center gap-1 transition-colors"
+                          onClick={() => handleSaveToWorkspace(msg)}
+                          className="text-[11px] text-gray-500 hover:text-accent-400 font-medium flex items-center gap-1.5 transition-colors"
                         >
-                          <Copy className="w-3 h-3" />
-                          Copy
+                          <Save className="w-3 h-3" />
+                          Save to workspace
                         </button>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                      <button
+                        onClick={() => navigator.clipboard.writeText(msg.content)}
+                        className="text-[11px] text-gray-500 hover:text-gray-400 font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <Copy className="w-3 h-3" />
+                        Copy
+                      </button>
+                      <button
+                        onClick={() => setWorkspaceOpen(!workspaceOpen)}
+                        className="text-[11px] text-gray-500 hover:text-gray-400 font-medium flex items-center gap-1.5 transition-colors ml-auto"
+                      >
+                        <FileText className="w-3 h-3" />
+                        Research panel
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           ))}
 
-          {/* Streaming indicator */}
+          {/* ── Streaming Response ── */}
           {isRunning && (
-            <div className="px-6 py-4 bg-gray-950/30 border-y border-gray-800/50">
-              <div className="max-w-3xl mx-auto">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-semibold text-emerald-400 font-mono">Scout Agent</span>
-                      <span className="text-[10px] text-gray-600 font-mono">writing…</span>
-                    </div>
+            <div className="px-6 py-5 bg-gray-950/30">
+              <div className="max-w-[720px] mx-auto flex items-start gap-4">
+                {/* Animated avatar */}
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
+                  <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[12px] font-semibold text-emerald-400">Scout</span>
                     {liveContent ? (
-                      <div className="text-[13px] text-gray-300 leading-relaxed whitespace-pre-wrap font-mono">
-                        {liveContent}
-                      </div>
+                      <span className="text-[11px] text-emerald-400/60 animate-pulse">generating…</span>
                     ) : (
-                      <div className="flex items-center gap-2 text-[12px] text-gray-500 font-mono">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        Thinking…
-                      </div>
+                      <DotPulse />
                     )}
                   </div>
+
+                  {liveContent ? (
+                    <div className="text-[14px] text-gray-300 leading-[1.7] whitespace-pre-wrap">
+                      {liveContent}
+                      <span className="inline-block w-1.5 h-4 bg-emerald-400/80 ml-0.5 align-middle animate-pulse rounded-sm" />
+                    </div>
+                  ) : (
+                    <div className="text-[13px] text-gray-500 italic">Analyzing your query…</div>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Error */}
+          {/* ── Error ── */}
           {error && (
             <div className="px-6 py-4">
-              <div className="max-w-3xl mx-auto bg-red-500/5 border border-red-500/20 rounded-lg p-4">
-                <p className="text-[12px] text-red-400 font-mono">{error}</p>
-                <p className="text-[11px] text-gray-500 mt-1 font-mono">
-                  Ensure backend is running: <code className="text-accent-400">cd backend && uvicorn app.main:app --reload</code>
+              <div className="max-w-[720px] mx-auto bg-red-500/5 border border-red-500/15 rounded-xl p-4">
+                <p className="text-[13px] text-red-400 font-medium">{error}</p>
+                <p className="text-[12px] text-gray-600 mt-1.5">
+                  Ensure the backend is running:{" "}
+                  <code className="text-accent-400 bg-gray-900 px-1.5 py-0.5 rounded text-[11px]">
+                    cd backend && uvicorn app.main:app --reload
+                  </code>
                 </p>
               </div>
             </div>
@@ -335,127 +467,203 @@ export default function Scout() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="p-4 border-t border-gray-800 bg-[#0b0c0e]">
-          <div className="flex gap-2 max-w-3xl mx-auto">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleRun()}
-              placeholder="Ask Scout to research…"
-              className="flex-1 px-3.5 py-2.5 bg-gray-950 border border-gray-800 rounded-md text-[13px] text-gray-0 focus:border-gray-600 focus:ring-2 focus:ring-accent-500/10 transition-all placeholder:text-gray-600 font-mono"
-              disabled={isRunning}
-            />
-            <button
-              onClick={handleRun}
-              disabled={!query.trim() || isRunning}
-              className="px-4 py-2.5 bg-accent-500 text-white rounded-md text-[13px] font-medium hover:bg-accent-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-mono"
-            >
-              {isRunning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              Send
-            </button>
+        {/* ── Input Bar ── */}
+        <div className="p-4 border-t border-gray-800/60 bg-[#0b0c0e]/80 backdrop-blur-sm">
+          <div className="max-w-[720px] mx-auto">
+            <div className="relative group/input">
+              {/* Focus glow */}
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-accent-500/30 via-violet-500/20 to-accent-500/30 opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300 blur-sm" />
+
+              <div className="relative flex items-center gap-2 bg-gray-900/80 border border-gray-800/60 rounded-2xl px-4 py-2.5 focus-within:border-accent-500/40 focus-within:bg-gray-900 transition-all duration-200 shadow-sm">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleRun()}
+                  placeholder={hasConversation ? "Ask a follow-up…" : "Ask Scout to research anything…"}
+                  className="flex-1 bg-transparent text-[14px] text-gray-0 placeholder:text-gray-600 focus:outline-none py-1"
+                  disabled={isRunning}
+                />
+                <button
+                  onClick={handleRun}
+                  disabled={!query.trim() || isRunning}
+                  className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0",
+                    query.trim() && !isRunning
+                      ? "bg-white text-gray-900 hover:bg-gray-100 hover:scale-[1.04] active:scale-[0.97]"
+                      : "bg-gray-800 text-gray-600",
+                  )}
+                >
+                  {isRunning ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ArrowUp className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+            {hasConversation && (
+              <p className="text-[10px] text-gray-600 mt-2 text-center">
+                Scout may produce inaccurate information. Verify important details independently.
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* ── Right: Collapsible Live Workspace Panel ── */}
-      {workspaceOpen && (
-        <div className="w-[420px] flex-shrink-0 flex flex-col bg-[#0b0c0e] border-l border-gray-800">
-          {/* Workspace header */}
-          <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      {/* ── Workspace Panel (slide-over) ── */}
+      <div className={cn(
+        "absolute right-0 top-0 bottom-0 w-[420px] bg-[#0b0c0e] border-l border-gray-800/60 flex flex-col transition-transform duration-300 ease-out z-10",
+        workspaceOpen ? "translate-x-0" : "translate-x-full",
+      )}>
+        {/* Panel header */}
+        <div className="px-5 py-3.5 border-b border-gray-800/60 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
               <FileText className="w-3.5 h-3.5 text-accent-400" />
-              <span className="text-[12px] font-semibold text-gray-300 font-mono uppercase tracking-wider">
-                Live Workspace
-              </span>
+            </div>
+            <div>
+              <span className="text-[13px] font-semibold text-gray-200">Research Panel</span>
               {(isRunning || liveContent) && (
-                <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse ml-1" />
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-2 align-middle" />
               )}
             </div>
-            <button
-              onClick={() => setWorkspaceOpen(false)}
-              className="p-1 rounded hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-colors"
-              title="Close workspace"
-            >
-              <PanelRightClose className="w-3.5 h-3.5" />
-            </button>
           </div>
+          <button
+            onClick={() => setWorkspaceOpen(false)}
+            className="p-1.5 rounded-lg hover:bg-gray-800/70 text-gray-500 hover:text-gray-300 transition-all"
+          >
+            <PanelRightClose className="w-4 h-4" />
+          </button>
+        </div>
 
-          {/* Workspace content */}
-          <div className="flex-1 overflow-y-auto" ref={workspaceScrollRef}>
-            {!isRunning && !liveContent && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center px-6">
-                <FileText className="w-8 h-8 text-gray-700 mb-3" />
-                <p className="text-[12px] text-gray-500 font-mono">
-                  Ask Scout a question to see the agent work live in this panel
-                </p>
-                <p className="text-[11px] text-gray-600 mt-1 font-mono">
-                  Files are auto-saved to your workspace
-                </p>
+        {/* Panel content */}
+        <div className="flex-1 overflow-y-auto" ref={workspaceScrollRef}>
+          {/* Empty panel */}
+          {!isRunning && !liveContent && messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center h-full text-center px-8">
+              <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center mb-5">
+                <FileText className="w-7 h-7 text-gray-600" />
               </div>
-            )}
+              <h3 className="text-[14px] font-semibold text-gray-400 mb-1.5">Research Panel</h3>
+              <p className="text-[12px] text-gray-600 leading-relaxed max-w-[260px]">
+                Ask Scout a question to see the agent pipeline and live document appear here in real time.
+              </p>
+            </div>
+          )}
 
-            {/* Agent steps (when running) */}
-            {isRunning && (
-              <div className="p-4 border-b border-gray-800">
-                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2 font-mono">
-                  Agent Pipeline
-                </p>
-                <div className="space-y-1">
+          {/* ── Agent Pipeline ── */}
+          {(isRunning || liveContent) && (
+            <div className="p-5 border-b border-gray-800/40">
+              <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                Agent Pipeline
+              </p>
+              <div className="relative">
+                {/* Timeline line */}
+                <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gray-800" />
+
+                <div className="space-y-3">
                   {steps.map((step) => (
                     <div
                       key={step.id}
-                      className={cn(
-                        "flex items-center gap-2 py-1 px-2 rounded transition-colors text-[11px]",
-                        step.status === "running" && "text-accent-300 bg-accent-500/5",
-                        step.status === "complete" && "text-gray-400",
-                        step.status === "pending" && "text-gray-600",
-                      )}
+                      className="relative flex items-start gap-3 pl-7"
                     >
-                      {step.status === "complete" && <CheckCircle2 className="w-3 h-3 text-emerald-400 flex-shrink-0" />}
-                      {step.status === "running" && <Loader2 className="w-3 h-3 text-accent-400 animate-spin flex-shrink-0" />}
-                      {step.status === "pending" && <Circle className="w-3 h-3 text-gray-700 flex-shrink-0" />}
-                      <span className="font-mono">{step.label}</span>
+                      {/* Timeline node */}
+                      <div className={cn(
+                        "absolute left-[5px] top-0.5 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
+                        step.status === "complete" && "bg-emerald-500/20 border-emerald-500",
+                        step.status === "running" && "bg-accent-500/20 border-accent-500",
+                        step.status === "pending" && "bg-transparent border-gray-700",
+                      )}>
+                        {step.status === "complete" && (
+                          <CheckCircle2 className="w-2 h-2 text-emerald-400" />
+                        )}
+                        {step.status === "running" && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
+                        )}
+                      </div>
+
+                      <step.icon className={cn(
+                        "w-3.5 h-3.5 flex-shrink-0 mt-0.5 transition-colors duration-300",
+                        step.status === "complete" && "text-emerald-400",
+                        step.status === "running" && "text-accent-400",
+                        step.status === "pending" && "text-gray-600",
+                      )} />
+
+                      <div className="min-w-0">
+                        <p className={cn(
+                          "text-[12px] leading-snug transition-colors duration-300",
+                          step.status === "running" && "text-accent-300 font-medium",
+                          step.status === "complete" && "text-gray-400",
+                          step.status === "pending" && "text-gray-600",
+                        )}>
+                          {step.label}
+                        </p>
+                        {step.status === "running" && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <div className="flex gap-0.5">
+                              <span className="w-1 h-1 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                              <span className="w-1 h-1 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                              <span className="w-1 h-1 rounded-full bg-accent-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Live document */}
-            {(isRunning || liveContent) && (
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-5 h-5 rounded bg-accent-500/15 border border-accent-500/25 flex items-center justify-center">
-                    <FileText className="w-3 h-3 text-accent-400" />
-                  </div>
-                  <div>
-                    <p className="text-[12px] font-medium text-gray-200 font-mono truncate">
-                      {messages[messages.length - 1]?.role === "user"
-                        ? (messages[messages.length - 1]?.content.slice(0, 50) ?? "Research")
-                        : "Research Report"}
-                    </p>
-                    <p className="text-[10px] text-gray-500 font-mono">
-                      {isRunning ? "Writing…" : "Complete"}
-                    </p>
-                  </div>
-                  {savedFileId && (
-                    <Badge variant="success">Saved</Badge>
-                  )}
+          {/* ── Live Document ── */}
+          {(isRunning || liveContent) && (
+            <div className="p-5">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-6 h-6 rounded-md bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
+                  <FileText className="w-3 h-3 text-accent-400" />
                 </div>
-                <div className="bg-gray-950 border border-gray-800 rounded-lg p-4 text-[12px] text-gray-300 font-mono whitespace-pre-wrap leading-relaxed min-h-[200px] max-h-[calc(100vh-280px)] overflow-y-auto">
-                  {liveContent || (
-                    <span className="text-gray-600 italic">Waiting for agent output…</span>
-                  )}
-                  {isRunning && (
-                    <span className="inline-block w-2 h-4 bg-accent-400 animate-pulse ml-0.5 align-middle" />
-                  )}
+                <div className="min-w-0">
+                  <p className="text-[12px] font-medium text-gray-200 truncate">
+                    {messages[messages.length - 1]?.role === "user"
+                      ? messages[messages.length - 1]?.content.slice(0, 55) ?? "Research"
+                      : "Research Report"}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {isRunning ? "Writing…" : "Complete"}
+                  </p>
                 </div>
+                {savedFileId && (
+                  <Badge variant="success" size="sm">Saved</Badge>
+                )}
               </div>
-            )}
-          </div>
+
+              <div className="bg-gray-950/80 border border-gray-800/60 rounded-xl p-4 text-[13px] text-gray-300 whitespace-pre-wrap leading-relaxed min-h-[200px] max-h-[calc(100vh-360px)] overflow-y-auto">
+                {liveContent || (
+                  <span className="text-gray-600 italic">Waiting for agent output…</span>
+                )}
+                {isRunning && (
+                  <span className="inline-block w-2 h-4 bg-accent-400 ml-0.5 align-middle animate-pulse rounded-sm" />
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+/** Animated dot pulse for "thinking" state */
+function DotPulse() {
+  return (
+    <div className="flex items-center gap-1">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-emerald-400/50 animate-bounce"
+          style={{ animationDelay: `${i * 150}ms`, animationDuration: "0.8s" }}
+        />
+      ))}
     </div>
   );
 }
