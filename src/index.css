@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  html, body, #root { height: 100%; background: #0d0e10; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #eceded;
+  }
+  ::selection { background: rgba(94, 106, 210, 0.3); color: #eceded; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2b32; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3f4148; }
+
+  input::placeholder, textarea::placeholder { color: #5d6069 !important; }
+  input:focus, textarea:focus, select:focus { outline: none; }
+}
+
+@layer components {
+  .card-hover {
+    @apply transition-all duration-150 hover:border-gray-600;
+  }
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:ring-offset-0;
+  }
+  .terminal-border {
+    @apply border border-gray-800 rounded-lg;
+  }
+  .glass {
+    @apply bg-gray-950/80 backdrop-blur-sm;
+  }
+}
