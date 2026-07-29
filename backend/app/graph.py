@@ -139,4 +139,4 @@ async def run_graph(query: str, company_id: str | None = None) -> AgentState:
     )
 
     result = await _agent_graph.ainvoke(initial_state)
-    return result
+    return AgentState(**result)
