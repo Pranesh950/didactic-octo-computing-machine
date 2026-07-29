@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import Badge from "@/components/shared/Badge";
 import CompanyLogo from "@/components/shared/CompanyLogo";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 import { formatFunding } from "@/lib/discover-engine";
 
 interface Props {

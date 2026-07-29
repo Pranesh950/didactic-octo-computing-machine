@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 
 // ── Filter State ──────────────────────────────────────
 

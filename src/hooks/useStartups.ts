@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getCompanies, type Company } from "@/lib/backend-client";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 
 // ── Cache (module-level, survives re-renders) ────────────
 

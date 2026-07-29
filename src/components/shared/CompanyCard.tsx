@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Link } from "react-router-dom";
 import Badge from "@/components/shared/Badge";
 import { formatCurrency } from "@/lib/utils";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 import { TrendingUp, Users, Calendar, DollarSign } from "lucide-react";
 
 const stageVariant: Record<string, "default" | "success" | "warning" | "info" | "neutral"> = {

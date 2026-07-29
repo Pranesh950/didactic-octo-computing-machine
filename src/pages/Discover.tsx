@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useStartups } from "@/hooks/useStartups";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 import {
   INITIAL_FILTERS,
   useDiscoverEngine,

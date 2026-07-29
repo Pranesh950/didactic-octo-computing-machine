@@ -3,7 +3,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid, List, Eye, Bookmark } from
 import { cn } from "@/lib/utils";
 import Badge from "@/components/shared/Badge";
 import CompanyLogo from "@/components/shared/CompanyLogo";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 import type { SortConfig, SortField } from "@/lib/discover-engine";
 import { formatFunding } from "@/lib/discover-engine";
 

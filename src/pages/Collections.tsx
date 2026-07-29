@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
   Plus,
@@ -23,9 +23,13 @@ import {
 import Badge from "@/components/shared/Badge";
 import { cn } from "@/lib/utils";
 import { useStartups } from "@/hooks/useStartups";
-import type { Collection, Startup } from "@/data/mock";
-
-const collections: Collection[] = [];
+import type { Collection, Startup } from "@/types/startup";
+import {
+  mergeCollections,
+  loadUserCollections,
+  saveUserCollections,
+  createUserCollection,
+} from "@/lib/collections";
 
 type ViewMode = "table" | "board";
 type SortField = "name" | "industry" | "stage" | "totalFunding" | "founded";
@@ -72,6 +76,18 @@ export default function Collections() {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [searchQuery, setSearchQuery] = useState("");
+  const [userColls, setUserColls] = useState<Collection[]>(() => loadUserCollections());
+
+  // Persist user collections
+  useEffect(() => {
+    saveUserCollections(userColls);
+  }, [userColls]);
+
+  // Merge smart + user collections
+  const collections = useMemo(
+    () => mergeCollections(startups, userColls),
+    [startups, userColls],
+  );
 
   const selectedCollection = collections.find((c) => c.id === selectedId);
     const companies = useMemo(
@@ -183,7 +199,14 @@ export default function Collections() {
 
         {/* New Collection button (Notion-style bottom add) */}
         <div className="px-2.5 pb-2.5">
-          <button className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] text-gray-500 hover:text-gray-300 hover:bg-gray-900 transition-colors font-mono group">
+          <button
+            onClick={() => {
+              const newColl = createUserCollection("New Collection", "", "companies");
+              setUserColls((prev) => [...prev, newColl]);
+              setSelectedId(newColl.id);
+            }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] text-gray-500 hover:text-gray-300 hover:bg-gray-900 transition-colors font-mono group"
+          >
             <Plus className="w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400" />
             New collection
           </button>

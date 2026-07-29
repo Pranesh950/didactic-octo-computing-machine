@@ -7,7 +7,7 @@
  */
 import type { ChatMessage } from "@/types/openai";
 import { getClient } from "@/lib/api-client";
-import type { Startup } from "@/data/mock";
+import type { Startup } from "@/types/startup";
 
 export interface BriefingSection {
   heading: string;
