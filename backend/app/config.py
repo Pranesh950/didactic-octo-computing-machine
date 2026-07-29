@@ -24,5 +24,9 @@ class Config:
     max_tokens: int = int(os.getenv("LLM_MAX_TOKENS", "4096"))
     temperature: float = float(os.getenv("LLM_TEMPERATURE", "0.0"))
 
+    # Serper.dev web search (free tier: 2,500/month)
+    # Get key at https://serper.dev
+    serper_api_key: str = os.getenv("SERPER_API_KEY", "")
+
 
 config = Config()

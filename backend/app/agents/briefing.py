@@ -14,7 +14,10 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.llm import invoke_with_fallback
 from app.models import AgentState
-from app.tools.startupwiki import get_company_profile, STARTUPS
+from app.tools.startupwiki import get_company_profile, _search_startups_scored
+from app.data.mock_db import STARTUPS
+from app.pipelines.memo_builder import build_full_memo
+from app.pipelines.scoring import calculate_vc_score
 
 logger = logging.getLogger(__name__)
 
@@ -55,24 +58,18 @@ Be professional, analytical, and direct. Use a VC partner's voice. No hedging, n
 
 def _find_company_from_query(query: str) -> str | None:
     """Try to find a company ID using the shared search engine."""
-    from app.tools.startupwiki import _search_startups_scored
-
     scored = _search_startups_scored(query)
     if not scored:
         return None
-
-    # Return the best match (highest score)
     _, best = scored[0]
     return best["id"]
 
 
 def _build_fallback_briefing(query: str, company_id: str | None) -> str:
-    """Build a database-driven briefing when the LLM is unavailable."""
-    # Try to find the company
+    """Build a database-driven briefing using the shared memo builder pipeline."""
     found_id = company_id or _find_company_from_query(query)
 
     if not found_id:
-        # Suggest companies from database
         names = ", ".join(s["name"] for s in STARTUPS[:5])
         return (
             f"## Company Not Found\n\n"
@@ -82,25 +79,23 @@ def _build_fallback_briefing(query: str, company_id: str | None) -> str:
                 f"- **{s['name']}** — {s.get('description', '')} ({s.get('stage', '')}, {s.get('industry', '')})"
                 for s in STARTUPS
             ) +
-            f"\n\nVisit the **Discover** tab to browse all companies, or try a briefing on one of these."
+            f"\n\nVisit the **Discover** tab to browse all companies."
         )
 
-    profile = get_company_profile.invoke({"company_id": found_id})
+    company = None
+    for c in STARTUPS:
+        if c["id"] == found_id:
+            company = c
+            break
 
-    if "not found" in profile.lower():
-        return (
-            f"## Company Not Found\n\n"
-            f"Unable to load data for this company. Try one of these instead:\n\n" +
-            "\n".join(f"- **{s['name']}**" for s in STARTUPS[:5])
-        )
+    if not company:
+        return f"## Error\n\nUnable to load company data for ID: {found_id}"
 
-    return (
-        f"## Investment Briefing — Query-based\n\n"
-        f"*Note: This briefing was generated from our database without AI analysis. The LLM service is currently unavailable.*\n\n"
-        f"{profile}\n\n"
-        f"---\n\n"
-        f"**Companies in database:** {', '.join(s['name'] for s in STARTUPS)}\n\n"
-        f"For a full AI-powered analysis, try again later when the LLM service is back online."
+    # Use the shared memo builder for a professional VC memo
+    return build_full_memo(
+        company=company,
+        company_name=company["name"],
+        query=query,
     )
 
 

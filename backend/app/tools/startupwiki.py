@@ -1,4 +1,9 @@
-"""StartupWiki database tools — LangChain-compatible tools wrapping the mock database."""
+"""StartupWiki database tools — LangChain-compatible tools with 20+ VC-vetted startups.
+
+Now includes:
+- search_startups, get_company_profile, list_all_companies (original)
+- compare_companies, analyze_sector, rank_by_metric, find_similar (new)
+"""
 
 from __future__ import annotations
 
@@ -6,219 +11,8 @@ from typing import Any
 
 from langchain_core.tools import tool
 
-# ── Mock database (mirrors frontend mock.ts) ──────────────
-
-STARTUPS: list[dict[str, Any]] = [
-    {
-        "id": "neural-labs",
-        "name": "Neural Labs",
-        "description": "AI infrastructure for scientific discovery",
-        "long_description": "Neural Labs builds foundational AI infrastructure that accelerates scientific research. Their platform enables research labs to train and deploy large-scale models for drug discovery, materials science, and genomics without needing dedicated ML engineering teams.",
-        "industry": "AI & Machine Learning",
-        "sub_industry": "AI Infrastructure",
-        "stage": "Seed",
-        "founded": 2023,
-        "headquarters": "San Francisco, CA",
-        "employees": 24,
-        "total_funding": 8_000_000,
-        "last_funding_date": "2024-11-15",
-        "founders": [
-            {
-                "name": "Dr. Sarah Chen",
-                "role": "CEO & Co-Founder",
-                "background": "PhD in Computational Biology from Stanford. Former Research Scientist at DeepMind where she led the protein folding infrastructure team.",
-                "previous_companies": ["DeepMind", "Stanford Bioengineering"],
-            },
-            {
-                "name": "Marcus Rivera",
-                "role": "CTO & Co-Founder",
-                "background": "Previously Staff Engineer at NVIDIA working on distributed training systems. Built infrastructure serving 10,000+ GPUs.",
-                "previous_companies": ["NVIDIA", "Google Cloud"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Seed", "amount": 8_000_000, "date": "2024-11-15", "lead_investor": "Andreessen Horowitz", "investors": ["Andreessen Horowitz", "Sequoia Capital", "Floodgate"]},
-            {"round": "Pre-seed", "amount": 2_000_000, "date": "2023-06-01", "lead_investor": "Floodgate", "investors": ["Floodgate", "Y Combinator"]},
-        ],
-        "competitors": ["Weights & Biases", "Modular", "Anyscale"],
-        "technology": ["Distributed Training", "GPU Orchestration", "MLOps", "AutoML"],
-        "tags": ["AI Infrastructure", "Scientific Computing", "Deep Tech"],
-        "growth_signal": "high",
-        "strengths": ["Deep tech moat in distributed training optimization", "Founding team with unmatched domain expertise", "Early traction with top-10 pharma companies"],
-        "risks": ["Enterprise sales cycles in pharma are 12-18 months", "Competing with well-funded open source alternatives", "GPU supply chain dependency"],
-    },
-    {
-        "id": "robosynth",
-        "name": "RoboSynth",
-        "description": "General-purpose robotics foundation models",
-        "long_description": "RoboSynth develops foundational AI models for robotic manipulation. Their models enable any robot arm to learn complex manipulation tasks from natural language instructions, dramatically reducing the cost of deploying robots in manufacturing and logistics.",
-        "industry": "Robotics",
-        "sub_industry": "Robotics Software",
-        "stage": "Series A",
-        "founded": 2022,
-        "headquarters": "Boston, MA",
-        "employees": 56,
-        "total_funding": 32_000_000,
-        "last_funding_date": "2025-02-20",
-        "founders": [
-            {
-                "name": "Dr. James Park",
-                "role": "CEO",
-                "background": "PhD in Robotics from MIT. Former Research Lead at Boston Dynamics where he led manipulation research. 15+ publications in top robotics conferences.",
-                "previous_companies": ["Boston Dynamics", "MIT CSAIL"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Series A", "amount": 24_000_000, "date": "2025-02-20", "lead_investor": "Lux Capital", "investors": ["Lux Capital", "Founders Fund", "Khosla Ventures"]},
-            {"round": "Seed", "amount": 8_000_000, "date": "2023-09-10", "lead_investor": "Khosla Ventures", "investors": ["Khosla Ventures", "Y Combinator", "SV Angel"]},
-        ],
-        "competitors": ["Physical Intelligence", "Skild AI", "Covariant"],
-        "technology": ["Foundation Models", "Imitation Learning", "Sim-to-Real Transfer", "Robot Control"],
-        "tags": ["Robotics", "Foundation Models", "Manufacturing"],
-        "growth_signal": "high",
-        "strengths": ["Pioneering foundation model approach for robotics", "Strong IP portfolio with 8 patents filed", "Pilot deployments with 3 Fortune 500 manufacturers"],
-        "risks": ["Hardware-dependent deployment limits scalability", "Safety certification for industrial use is expensive", "Competition from well-funded Physical Intelligence ($400M raise)"],
-    },
-    {
-        "id": "synthex-bio",
-        "name": "Synthex Bio",
-        "description": "Programmable cell therapies using AI-designed proteins",
-        "long_description": "Synthex Bio combines generative AI with synthetic biology to design novel therapeutic proteins. Their platform generates and tests millions of protein variants in silico, reducing the time to identify clinical candidates from years to months.",
-        "industry": "Biotech",
-        "sub_industry": "AI Drug Discovery",
-        "stage": "Series A",
-        "founded": 2021,
-        "headquarters": "Cambridge, MA",
-        "employees": 72,
-        "total_funding": 45_000_000,
-        "last_funding_date": "2025-01-08",
-        "founders": [
-            {
-                "name": "Dr. Elena Vasquez",
-                "role": "CEO & Co-Founder",
-                "background": "MD/PhD from Harvard-MIT. Former Principal Scientist at Moderna where she led the mRNA design platform. Rhodes Scholar.",
-                "previous_companies": ["Moderna", "Broad Institute"],
-            },
-            {
-                "name": "Prof. David Kim",
-                "role": "Chief Scientific Officer",
-                "background": "Professor of Bioengineering at Stanford. Pioneer in computational protein design. 200+ publications, 15 patents.",
-                "previous_companies": ["Stanford University"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Series A", "amount": 35_000_000, "date": "2025-01-08", "lead_investor": "ARCH Venture Partners", "investors": ["ARCH Venture Partners", "F-Prime Capital", "GV"]},
-            {"round": "Seed", "amount": 10_000_000, "date": "2023-03-15", "lead_investor": "GV", "investors": ["GV", "Khosla Ventures"]},
-        ],
-        "competitors": ["Generate Biomedicines", "Evozyne", "Profluent"],
-        "technology": ["Protein Design", "Generative AI", "High-Throughput Screening", "mRNA"],
-        "tags": ["Biotech", "AI Drug Discovery", "Deep Tech", "Protein Engineering"],
-        "growth_signal": "high",
-        "strengths": ["Validated platform with 3 internal programs in lead optimization", "World-class founding team with rare combination of AI + biology expertise", "Strong pharma partnership interest with 2 term sheets received"],
-        "risks": ["Clinical validation still 18-24 months away", "Regulatory uncertainty around AI-designed biologics", "Talent war for ML engineers who understand biology"],
-    },
-    {
-        "id": "solara-climate",
-        "name": "Solara Climate",
-        "description": "Direct air capture with AI-optimized materials",
-        "long_description": "Solara Climate develops next-generation direct air capture (DAC) systems powered by AI-discovered sorbent materials. Their machine learning platform has identified novel materials that capture CO2 at 40% lower energy cost than existing solutions.",
-        "industry": "Climate Tech",
-        "sub_industry": "Carbon Capture",
-        "stage": "Series B",
-        "founded": 2020,
-        "headquarters": "Oakland, CA",
-        "employees": 94,
-        "total_funding": 85_000_000,
-        "last_funding_date": "2025-04-01",
-        "founders": [
-            {
-                "name": "Amir Patel",
-                "role": "CEO",
-                "background": "Former VP of Engineering at Tesla Energy. Led the Powerwall manufacturing scale-up from prototype to 100K+ units.",
-                "previous_companies": ["Tesla", "SunPower"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Series B", "amount": 55_000_000, "date": "2025-04-01", "lead_investor": "Breakthrough Energy Ventures", "investors": ["Breakthrough Energy Ventures", "Lowercarbon Capital", "Prelude Ventures"]},
-            {"round": "Series A", "amount": 20_000_000, "date": "2023-08-01", "lead_investor": "Lowercarbon Capital", "investors": ["Lowercarbon Capital", "Prelude Ventures"]},
-            {"round": "Seed", "amount": 10_000_000, "date": "2021-12-01", "lead_investor": "Prelude Ventures", "investors": ["Prelude Ventures", "Y Combinator"]},
-        ],
-        "competitors": ["Climeworks", "Carbon Engineering", "Heirloom"],
-        "technology": ["Direct Air Capture", "Materials Science", "ML-Driven Discovery", "Process Engineering"],
-        "tags": ["Climate Tech", "Carbon Capture", "Deep Tech", "Sustainability"],
-        "growth_signal": "medium",
-        "strengths": ["Proprietary sorbent materials with 40% cost advantage", "First commercial pilot producing 1,000 tons/year", "Strong policy tailwinds from IRA and EU carbon markets"],
-        "risks": ["Capital-intensive deployment model", "Carbon credit prices are volatile", "Competing with nature-based solutions on cost per ton"],
-    },
-    {
-        "id": "tesseract-finance",
-        "name": "Tesseract Finance",
-        "description": "AI-native quantitative hedge fund infrastructure",
-        "long_description": "Tesseract Finance provides the infrastructure layer for AI-native quantitative trading. Their platform enables hedge funds and asset managers to deploy machine learning models directly to production trading environments with institutional-grade risk controls and compliance.",
-        "industry": "Fintech",
-        "sub_industry": "Quantitative Finance",
-        "stage": "Seed",
-        "founded": 2024,
-        "headquarters": "New York, NY",
-        "employees": 18,
-        "total_funding": 6_000_000,
-        "last_funding_date": "2024-10-01",
-        "founders": [
-            {
-                "name": "Alex Zhang",
-                "role": "CEO",
-                "background": "Former Quantitative Trader at Jane Street. Built systematic trading strategies managing $2B AUM. CS degree from MIT.",
-                "previous_companies": ["Jane Street", "Two Sigma"],
-            },
-            {
-                "name": "Priya Sharma",
-                "role": "CTO",
-                "background": "Staff Engineer at Stripe building financial infrastructure. Previously at Goldman Sachs electronic trading.",
-                "previous_companies": ["Stripe", "Goldman Sachs"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Seed", "amount": 6_000_000, "date": "2024-10-01", "lead_investor": "Founders Fund", "investors": ["Founders Fund", "Ribbit Capital", "BoxGroup"]},
-        ],
-        "competitors": ["Numerai", "QuantConnect", "Alpaca"],
-        "technology": ["ML Trading", "Risk Management", "Backtesting", "Market Data Pipelines"],
-        "tags": ["Fintech", "Quantitative Finance", "AI/ML"],
-        "growth_signal": "high",
-        "strengths": ["Exceptional founding team with top-tier trading + infra experience", "Already processing $500M+ in monthly trading volume from beta customers", "Regulatory compliance built in from day one"],
-        "risks": ["Fintech regulatory landscape is complex and evolving", "Customer concentration risk with first 3 hedge fund clients", "AI model explainability requirements from regulators"],
-    },
-    {
-        "id": "genesis-data",
-        "name": "Genesis Data",
-        "description": "Synthetic data generation for enterprise AI training",
-        "long_description": "Genesis Data generates high-fidelity synthetic datasets for training enterprise AI models. Their platform creates statistically accurate, privacy-preserving synthetic data that eliminates the bottleneck of real-world data scarcity in regulated industries.",
-        "industry": "AI & Machine Learning",
-        "sub_industry": "Synthetic Data",
-        "stage": "Seed",
-        "founded": 2023,
-        "headquarters": "Austin, TX",
-        "employees": 15,
-        "total_funding": 5_500_000,
-        "last_funding_date": "2024-09-15",
-        "founders": [
-            {
-                "name": "Rachel Okafor",
-                "role": "CEO",
-                "background": "Former ML Engineer at Scale AI. Built data pipelines processing 10M+ annotations daily. MS in CS from CMU.",
-                "previous_companies": ["Scale AI", "Palantir"],
-            },
-        ],
-        "funding_rounds": [
-            {"round": "Seed", "amount": 5_500_000, "date": "2024-09-15", "lead_investor": "General Catalyst", "investors": ["General Catalyst", "Y Combinator", "Liquid 2 Ventures"]},
-        ],
-        "competitors": ["Gretel", "Mostly AI", "Tonic.ai"],
-        "technology": ["Synthetic Data", "Generative Models", "Privacy Engineering", "Data Quality"],
-        "tags": ["AI Infrastructure", "Enterprise", "Data"],
-        "growth_signal": "medium",
-        "strengths": ["Strong enterprise pipeline with 2 F500 pilot customers", "Differentiated privacy guarantees with formal verification", "Modular architecture integrates with existing data pipelines"],
-        "risks": ["Synthetic data quality skepticism in regulated industries", "Fierce competition from established players like Gretel", "Long enterprise sales cycles for new data infrastructure"],
-    },
-]
+from app.data.mock_db import STARTUPS
+from app.pipelines.scoring import calculate_vc_score, score_multiple
 
 
 def _format_company(c: dict) -> str:
@@ -233,7 +27,8 @@ def _format_company(c: dict) -> str:
 
 
 def _format_company_detailed(c: dict) -> str:
-    """Format a company dict into a detailed profile."""
+    """Format a company dict into a detailed profile with VC scores."""
+    scores = calculate_vc_score(c)
     founders_str = "\n".join(
         f"  • {f['name']} ({f['role']}): {f['background']}"
         for f in c["founders"]
@@ -250,28 +45,28 @@ def _format_company_detailed(c: dict) -> str:
         f"Founded: {c['founded']}, HQ: {c['headquarters']}\n"
         f"Employees: {c['employees']}\n"
         f"Total Funding: ${c['total_funding'] / 1_000_000:.0f}M\n"
+        f"Valuation Est: ${c.get('valuation_est', 'N/A')}\n"
+        f"Revenue: {c.get('revenue_range', 'N/A')}\n"
+        f"YoY Growth: {c.get('growth_rate_yoy', 'N/A')}%\n"
+        f"TAM: ${c.get('market_size_billions', 'N/A')}B\n"
         f"Last Funding: {c['last_funding_date']}\n"
-        f"Growth Signal: {c['growth_signal']}\n"
         f"\nFOUNDERS:\n{founders_str}\n"
         f"\nFUNDING ROUNDS:\n{rounds_str}\n"
         f"\nCompetitors: {', '.join(c['competitors'])}\n"
         f"Technology: {', '.join(c['technology'])}\n"
+        f"\nVC SCORECARD:\n"
+        f"  Team: {scores['team_score']}/10\n"
+        f"  Market: {scores['market_score']}/10\n"
+        f"  Traction: {scores['traction_score']}/10\n"
+        f"  Overall: {scores['overall_score']}/10 — {scores['rating']}\n"
         f"\nStrengths: {'; '.join(c['strengths'])}\n"
-        f"Risks: {'; '.join(c['risks'])}"
+        f"Risks: {'; '.join(c['risks'])}\n"
+        f"Exit Potential: {c.get('exit_potential', 'N/A')}"
     )
 
 
-# ── Shared search helper ─────────────────────────────────
-# Used by both the LangChain tool AND agent fallback code so
-# search always works regardless of LLM availability.
-
-
 def _search_startups_scored(query: str) -> list[tuple[int, dict[str, Any]]]:
-    """Core search logic: returns (score, company) tuples sorted by relevance.
-
-    Searches across name, description, industry, sub_industry, tags,
-    technology, founders, and headquarters using multi-word matching.
-    """
+    """Core search logic: returns (score, company) tuples sorted by relevance."""
     query_lower = query.lower()
     words = [w for w in query_lower.split() if len(w) > 1]
 
@@ -286,13 +81,9 @@ def _search_startups_scored(query: str) -> list[tuple[int, dict[str, Any]]]:
         sub = c.get("sub_industry", "").lower()
         founders = " ".join(f["name"].lower() for f in c.get("founders", []))
 
-        # Full phrase match (highest weight)
-        if query_lower in name:
-            score += 10
-        if query_lower in desc:
-            score += 5
+        if query_lower in name: score += 10
+        if query_lower in desc: score += 5
 
-        # Per-word matching
         for word in words:
             if word in name: score += 4
             if word in desc: score += 2
@@ -310,14 +101,15 @@ def _search_startups_scored(query: str) -> list[tuple[int, dict[str, Any]]]:
     return scored
 
 
-# ── LangChain Tools ──────────────────────────────────────
+# ── Core Search Tools ────────────────────────────────────
 
 @tool
 def search_startups(query: str) -> str:
     """Search the StartupWiki database for startups matching a query.
 
     Performs multi-word matching across name, description, industry, tags,
-    and technology. Returns formatted summaries sorted by relevance.
+    technology, founders, and headquarters. Returns formatted summaries
+    sorted by relevance.
 
     Args:
         query: Search keywords (company name, industry, technology, etc.)
@@ -329,18 +121,20 @@ def search_startups(query: str) -> str:
         return (
             f"No startups found matching '{query}'. "
             f"Try searching by industry: {', '.join(industries)}. "
-            f"Or use a company name like: {', '.join(c['name'] for c in STARTUPS[:3])}."
+            f"Available companies: {', '.join(c['name'] for c in STARTUPS[:5])}."
         )
 
     return (
         f"Found {len(scored)} startup(s) matching '{query}':\n\n"
-        + "\n".join(_format_company(c) for _, c in scored[:8])
+        + "\n".join(_format_company(c) for _, c in scored[:10])
     )
 
 
 @tool
 def get_company_profile(company_id: str) -> str:
     """Get the full detailed profile of a specific company by ID.
+
+    Includes VC scorecard with Team/Market/Traction scores out of 10.
 
     Args:
         company_id: The unique company identifier (e.g., 'neural-labs')
@@ -362,6 +156,210 @@ def list_all_companies() -> str:
     )
 
 
-# Tool registry for LangGraph agents
-RESEARCH_TOOLS = [search_startups, get_company_profile, list_all_companies]
-ALL_TOOLS = RESEARCH_TOOLS
+# ── Analysis Tools ──────────────────────────────────────
+
+@tool
+def compare_companies(company_ids: str) -> str:
+    """Compare multiple companies side-by-side on key VC metrics.
+
+    Args:
+        company_ids: Comma-separated list of company IDs (e.g., 'neural-labs,robosynth')
+    """
+    ids = [i.strip() for i in company_ids.split(",")]
+    companies = [c for c in STARTUPS if c["id"] in ids]
+
+    if not companies:
+        return f"No companies found for IDs: {company_ids}. Available: {', '.join(c['id'] for c in STARTUPS[:5])}"
+
+    lines = [f"# Side-by-Side Comparison: {', '.join(c['name'] for c in companies)}\n"]
+    lines.append("| Metric | " + " | ".join(c["name"] for c in companies) + " |")
+    lines.append("|--------|" + "|".join(["--------" for _ in companies]) + "|")
+    lines.append(f"| Stage | {' | '.join(c['stage'] for c in companies)} |")
+    lines.append(f"| Industry | {' | '.join(c['industry'] for c in companies)} |")
+    lines.append(f"| Founded | {' | '.join(str(c['founded']) for c in companies)} |")
+    lines.append(f"| Employees | {' | '.join(str(c['employees']) for c in companies)} |")
+    lines.append(f"| Total Funding | {' | '.join('${:.0f}M'.format(c['total_funding']/1_000_000) for c in companies)} |")
+    lines.append(f"| Valuation Est | {' | '.join('${:.0f}M'.format(c['valuation_est']/1_000_000) if isinstance(c.get('valuation_est'), (int, float)) else str(c.get('valuation_est', 'N/A')) for c in companies)} |")
+    lines.append("| YoY Growth | " + " | ".join("{}%".format(c.get('growth_rate_yoy', 'N/A')) for c in companies) + " |")
+    lines.append("| TAM | " + " | ".join("${}B".format(c.get('market_size_billions', 'N/A')) for c in companies) + " |")
+    lines.append("| Moat Score | " + " | ".join("{}/10".format(c.get('moat_score', 'N/A')) for c in companies) + " |")
+
+    # VC Scores
+    for c in companies:
+        c["_scores"] = calculate_vc_score(c)
+    lines.append("| VC Overall | " + " | ".join("{}/10".format(c['_scores']['overall_score']) for c in companies) + " |")
+    lines.append("| Team Score | " + " | ".join("{}/10".format(c['_scores']['team_score']) for c in companies) + " |")
+    lines.append("| Market Score | " + " | ".join("{}/10".format(c['_scores']['market_score']) for c in companies) + " |")
+    lines.append("| Traction Score | " + " | ".join("{}/10".format(c['_scores']['traction_score']) for c in companies) + " |")
+
+    return "\n".join(lines)
+
+
+@tool
+def analyze_sector(industry: str) -> str:
+    """Analyze an entire sector/industry — all companies, TAM, trends, and top picks.
+
+    Args:
+        industry: Industry name (e.g., 'AI & Machine Learning', 'Biotech', 'Climate Tech')
+    """
+    companies = [c for c in STARTUPS if industry.lower() in c["industry"].lower() or industry.lower() in c.get("sub_industry", "").lower()]
+
+    if not companies:
+        available = sorted(set(c["industry"] for c in STARTUPS))
+        return f"No companies found in '{industry}'. Available sectors: {', '.join(available)}"
+
+    # Score and rank
+    scored = score_multiple(companies)
+
+    total_tam = sum(c.get("market_size_billions", 0) for c in companies)
+    total_funding = sum(c["total_funding"] for c in companies)
+    avg_growth = sum(c.get("growth_rate_yoy", 0) for c in companies) / len(companies) if companies else 0
+
+    lines = [
+        f"# Sector Analysis: {industry}",
+        f"Companies: {len(companies)} | Total TAM: ${total_tam:.0f}B | Total Funding: ${total_funding/1_000_000:.0f}M | Avg Growth: {avg_growth:.0f}%\n",
+        "## Top-Ranked Companies\n",
+    ]
+
+    for i, c in enumerate(scored[:5], 1):
+        s = c.get("vc_scores", {})
+        lines.append(
+            f"{i}. **{c['name']}** (VC Score: {s.get('overall_score', 'N/A')}/10)\n"
+            f"   {c['description']}\n"
+            f"   Stage: {c['stage']} | Funding: ${c['total_funding']/1_000_000:.0f}M | "
+            f"Growth: {c.get('growth_rate_yoy', 'N/A')}% | TAM: ${c.get('market_size_billions', 'N/A')}B\n"
+        )
+
+    if len(scored) > 5:
+        lines.append(f"\n...and {len(scored) - 5} more companies. Use `compare_companies` for side-by-side analysis.")
+
+    return "\n".join(lines)
+
+
+@tool
+def rank_by_metric(metric_info: str) -> str:
+    """Rank all companies by a specific VC metric.
+
+    Args:
+        metric_info: Metric to rank by, optionally filtered by industry
+                     (e.g., 'growth_rate_yoy' or 'market_size_billions in Biotech')
+    """
+    parts = metric_info.split(" in ")
+    metric = parts[0].strip()
+    industry_filter = parts[1].strip() if len(parts) > 1 else None
+
+    valid_metrics = {
+        "growth_rate_yoy": "YoY Growth Rate",
+        "market_size_billions": "Market Size (TAM)",
+        "total_funding": "Total Funding",
+        "moat_score": "Moat Score",
+        "valuation_est": "Valuation Estimate",
+    }
+
+    if metric not in valid_metrics:
+        return f"Unknown metric '{metric}'. Available: {', '.join(valid_metrics.keys())}"
+
+    candidates = STARTUPS
+    if industry_filter:
+        candidates = [c for c in STARTUPS if industry_filter.lower() in c["industry"].lower() or industry_filter.lower() in c.get("sub_industry", "").lower()]
+        if not candidates:
+            return f"No companies found in '{industry_filter}'."
+
+    key = metric
+    ranked = sorted(
+        [c for c in candidates if c.get(key) is not None],
+        key=lambda c: c.get(key, 0),
+        reverse=True,
+    )
+
+    lines = [f"# Companies Ranked by {valid_metrics[metric]}"]
+    if industry_filter:
+        lines[0] += f" in {industry_filter}"
+    lines.append("")
+
+    for i, c in enumerate(ranked[:10], 1):
+        val = c.get(key, "N/A")
+        if isinstance(val, (int, float)) and key in ("total_funding", "valuation_est"):
+            val_str = f"${val/1_000_000:.0f}M"
+        elif isinstance(val, (int, float)) and key == "market_size_billions":
+            val_str = f"${val:.0f}B"
+        elif isinstance(val, (int, float)):
+            val_str = f"{val}%"
+        else:
+            val_str = str(val)
+        lines.append(f"{i}. **{c['name']}** — {val_str} ({c['stage']}, {c['industry']})")
+
+    return "\n".join(lines)
+
+
+@tool
+def find_similar(company_id: str) -> str:
+    """Find companies similar to a given company (same industry, similar stage, shared technology).
+
+    Args:
+        company_id: The company ID to find matches for (e.g., 'neural-labs')
+    """
+    target = None
+    for c in STARTUPS:
+        if c["id"] == company_id:
+            target = c
+            break
+
+    if not target:
+        available = ", ".join(c["id"] for c in STARTUPS[:5])
+        return f"Company '{company_id}' not found. Available IDs: {available}"
+
+    # Score similarity
+    similar = []
+    for c in STARTUPS:
+        if c["id"] == company_id:
+            continue
+        sim = 0
+        if c["industry"] == target["industry"]: sim += 3
+        if c.get("sub_industry") == target.get("sub_industry"): sim += 2
+        if c["stage"] == target["stage"]: sim += 2
+        shared_tech = set(c.get("technology", [])) & set(target.get("technology", []))
+        sim += len(shared_tech)
+        shared_tags = set(c.get("tags", [])) & set(target.get("tags", []))
+        sim += len(shared_tags)
+        if sim > 0:
+            similar.append((sim, c))
+
+    similar.sort(key=lambda x: x[0], reverse=True)
+
+    if not similar:
+        return f"No similar companies found for {target['name']}. Try searching by industry: {target['industry']}."
+
+    lines = [
+        f"# Companies Similar to {target['name']}",
+        f"Industry: {target['industry']} / {target.get('sub_industry', '')} | Stage: {target['stage']}\n",
+    ]
+
+    for sim, c in similar[:5]:
+        lines.append(
+            f"- **{c['name']}** (similarity: {sim}) — {c['description']}\n"
+            f"  {c['stage']}, {c['industry']}, ${c['total_funding']/1_000_000:.0f}M raised"
+        )
+
+    return "\n".join(lines)
+
+
+# Tool registries
+RESEARCH_TOOLS = [
+    search_startups,
+    get_company_profile,
+    list_all_companies,
+    compare_companies,
+    analyze_sector,
+    rank_by_metric,
+    find_similar,
+]
+
+ALL_TOOLS = list(RESEARCH_TOOLS)
+
+# Include Serper tools when available
+try:
+    from app.tools.serper import SERPER_TOOLS
+    ALL_TOOLS.extend(SERPER_TOOLS)
+except ImportError:
+    pass
