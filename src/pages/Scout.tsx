@@ -450,7 +450,7 @@ export default function Scout() {
   const hasConversation = messages.length > 0 || isRunning;
 
   return (
-    <div className="flex h-full bg-[#121214] text-white">
+    <div className="flex h-full bg-[#121214] text-white relative overflow-hidden">
       {/* ── Chat History Rail (Left) ── */}
       <div className="w-[260px] flex-shrink-0 bg-[#0A0A0C] border-r border-white/[0.06] flex flex-col">
         {/* New session button */}
@@ -546,7 +546,7 @@ export default function Scout() {
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 overflow-y-auto pb-48">
+        <div className="flex-1 overflow-y-auto pb-44">
           {/* Empty State */}
           {!hasConversation && (
             <div className="flex flex-col items-center justify-center h-full px-6 py-12">
@@ -748,21 +748,18 @@ export default function Scout() {
 
       {/* ── Prompt Command Deck (Bottom Fixed) ── */}
       <div className={cn(
-        "absolute bottom-0 left-[260px] right-0 z-20 pb-6 pt-4 px-6",
+        "absolute bottom-0 left-[260px] right-0 z-20 pb-5 pt-3 px-4",
         workspaceOpen ? "right-[420px]" : "",
       )}>
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           <div className={cn(
             "relative bg-[#1a1a1c]/80 backdrop-blur-xl border rounded-2xl p-3 transition-all duration-300",
             "border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
             "focus-within:border-white/[0.12] focus-within:shadow-[0_0_24px_rgba(59,130,246,0.08)]",
           )}>
             {/* Mode toggle */}
-            <div className="flex items-center justify-between mb-2.5 px-1">
+            <div className="flex items-center justify-between mb-2 px-1">
               <ModeTogglePill mode={mode} onChange={setMode} />
-              <span className="text-[9px] text-white/15 font-medium">
-                {mode === "research" ? "Deep report mode" : "Quick answer mode"}
-              </span>
             </div>
 
             {/* Input row */}
@@ -773,7 +770,7 @@ export default function Scout() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleRun()}
                 placeholder={mode === "research"
-                  ? "Ask for a deep research report on a company or market..."
+                  ? "Ask for a deep research report..."
                   : hasConversation ? "Ask a follow-up…" : "Ask Scout to research anything…"}
                 className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/20 focus:outline-none py-1.5"
                 disabled={isRunning}
@@ -797,12 +794,6 @@ export default function Scout() {
               </button>
             </div>
           </div>
-
-          {hasConversation && (
-            <p className="text-[9px] text-white/15 mt-2 text-center">
-              Scout may produce inaccurate information. Verify important details independently.
-            </p>
-          )}
         </div>
       </div>
 

@@ -54,24 +54,16 @@ Be professional, analytical, and direct. Use a VC partner's voice. No hedging, n
 
 
 def _find_company_from_query(query: str) -> str | None:
-    """Try to find a company ID by matching the query against the database."""
-    q = query.lower()
-    best_score = 0
-    best_id = None
+    """Try to find a company ID using the shared search engine."""
+    from app.tools.startupwiki import _search_startups_scored
 
-    for s in STARTUPS:
-        score = 0
-        name = s.get("name", "").lower()
-        if name in q or q in name:
-            score += 5
-        for word in q.split():
-            if word in name:
-                score += 2
-        if score > best_score:
-            best_score = score
-            best_id = s.get("id")
+    scored = _search_startups_scored(query)
+    if not scored:
+        return None
 
-    return best_id if best_score >= 3 else None
+    # Return the best match (highest score)
+    _, best = scored[0]
+    return best["id"]
 
 
 def _build_fallback_briefing(query: str, company_id: str | None) -> str:

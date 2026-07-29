@@ -261,35 +261,80 @@ def _format_company_detailed(c: dict) -> str:
     )
 
 
+# ── Shared search helper ─────────────────────────────────
+# Used by both the LangChain tool AND agent fallback code so
+# search always works regardless of LLM availability.
+
+
+def _search_startups_scored(query: str) -> list[tuple[int, dict[str, Any]]]:
+    """Core search logic: returns (score, company) tuples sorted by relevance.
+
+    Searches across name, description, industry, sub_industry, tags,
+    technology, founders, and headquarters using multi-word matching.
+    """
+    query_lower = query.lower()
+    words = [w for w in query_lower.split() if len(w) > 1]
+
+    scored: list[tuple[int, dict[str, Any]]] = []
+    for c in STARTUPS:
+        score = 0
+        name = c["name"].lower()
+        desc = c["description"].lower()
+        industry = c["industry"].lower()
+        tags = " ".join(c.get("tags", [])).lower()
+        tech = " ".join(c.get("technology", [])).lower()
+        sub = c.get("sub_industry", "").lower()
+        founders = " ".join(f["name"].lower() for f in c.get("founders", []))
+
+        # Full phrase match (highest weight)
+        if query_lower in name:
+            score += 10
+        if query_lower in desc:
+            score += 5
+
+        # Per-word matching
+        for word in words:
+            if word in name: score += 4
+            if word in desc: score += 2
+            if word in industry: score += 3
+            if word in sub: score += 3
+            if word in tags: score += 2
+            if word in tech: score += 2
+            if word in founders: score += 1
+            if word in c.get("headquarters", "").lower(): score += 1
+
+        if score > 0:
+            scored.append((score, c))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    return scored
+
+
 # ── LangChain Tools ──────────────────────────────────────
 
 @tool
 def search_startups(query: str) -> str:
     """Search the StartupWiki database for startups matching a query.
 
-    Searches across name, description, industry, and tags. Returns formatted
-    summaries of matching companies.
+    Performs multi-word matching across name, description, industry, tags,
+    and technology. Returns formatted summaries sorted by relevance.
 
     Args:
         query: Search keywords (company name, industry, technology, etc.)
     """
-    query_lower = query.lower()
-    results = [
-        c for c in STARTUPS
-        if (
-            query_lower in c["name"].lower()
-            or query_lower in c["description"].lower()
-            or query_lower in c["industry"].lower()
-            or any(query_lower in t.lower() for t in c["tags"])
-        )
-    ]
+    scored = _search_startups_scored(query)
 
-    if not results:
-        return f"No startups found matching '{query}'. Try broadening your search."
+    if not scored:
+        industries = sorted(set(c["industry"] for c in STARTUPS))
+        return (
+            f"No startups found matching '{query}'. "
+            f"Try searching by industry: {', '.join(industries)}. "
+            f"Or use a company name like: {', '.join(c['name'] for c in STARTUPS[:3])}."
+        )
 
     return (
-        f"Found {len(results)} startup(s) matching '{query}':\n\n"
-        + "\n".join(_format_company(c) for c in results)
+        f"Found {len(scored)} startup(s) matching '{query}':\n\n"
+        + "\n".join(_format_company(c) for _, c in scored[:8])
     )
 
 
