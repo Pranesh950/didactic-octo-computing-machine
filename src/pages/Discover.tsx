@@ -85,7 +85,7 @@ export default function Discover() {
         {/* Sidebar toggle button */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="flex-shrink-0 w-8 border-r border-gray-200 hover:bg-gray-100 transition-colors flex items-start justify-center pt-3 text-gray-400 hover:text-gray-600"
+          className="flex-shrink-0 w-8 border-r border-white/[0.06] hover:bg-white/[0.04] transition-colors flex items-start justify-center pt-3 text-white/25 hover:text-white/50"
           title={sidebarCollapsed ? "Show filters" : "Hide filters"}
         >
           {sidebarCollapsed ? (

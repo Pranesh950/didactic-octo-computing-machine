@@ -134,7 +134,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                     <div className="flex items-center gap-2 mt-3">
                       <Badge variant={stageVariant[company.stage] ?? "neutral"} size="sm">{company.stage}</Badge>
                       {company.growthSignal === "high" && (
-                        <span className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-medium">
                           <TrendingUp className="w-3 h-3" />
                           High growth
                         </span>
@@ -168,7 +168,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
 
               {/* ── Leadership Tab ── */}
               {activeTab === "leadership" && (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white/[0.04]">
                   {company.founders.map((founder, i) => (
                     <div key={i} className="p-5">
                       <div className="flex items-center gap-2 mb-2">
@@ -244,7 +244,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
 
               {/* ── Technology Tab ── */}
               {activeTab === "technology" && (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-white/[0.04]">
                   <div className="p-5">
                     <h3 className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-2.5">Tech Stack</h3>
                     <div className="flex flex-wrap gap-1.5">
