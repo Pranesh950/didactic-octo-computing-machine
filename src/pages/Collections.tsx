@@ -23,7 +23,9 @@ import {
 import Badge from "@/components/shared/Badge";
 import { cn } from "@/lib/utils";
 import { useStartups } from "@/hooks/useStartups";
-import { collections, type Collection, type Startup } from "@/data/mock";
+import type { Collection, Startup } from "@/data/mock";
+
+const collections: Collection[] = [];
 
 type ViewMode = "table" | "board";
 type SortField = "name" | "industry" | "stage" | "totalFunding" | "founded";
@@ -65,7 +67,7 @@ const columns: ColumnDef[] = [
 
 export default function Collections() {
   const { startups } = useStartups();
-  const [selectedId, setSelectedId] = useState<string>(collections[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState<string>("");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");

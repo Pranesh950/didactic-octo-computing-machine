@@ -209,3 +209,63 @@ export async function healthCheck(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Stream agent response as an async generator — designed for assistant-ui's useLocalRuntime.
+ * Yields text chunks as they arrive from the backend SSE stream.
+ */
+export async function* streamAgentChunks(query: string): AsyncGenerator<string> {
+  const url = `${BACKEND_URL}/api/agent/stream`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+
+  if (!response.ok) {
+    let detail = response.statusText;
+    try {
+      const body = await response.text();
+      detail = body.slice(0, 200);
+    } catch { /* ignore */ }
+    throw new BackendError(response.status, detail);
+  }
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new BackendError(500, "No response body");
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data: ")) continue;
+        const data = trimmed.slice(6);
+
+        try {
+          const event = JSON.parse(data);
+          if (event.type === "token") {
+            yield event.content;
+          } else if (event.type === "error") {
+            throw new BackendError(500, event.message);
+          }
+        } catch (e) {
+          if (e instanceof BackendError) throw e;
+          continue;
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
