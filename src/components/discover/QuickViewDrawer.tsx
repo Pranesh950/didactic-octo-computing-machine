@@ -61,7 +61,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
       <div
         key={company?.id}
         className={cn(
-          "fixed inset-y-0 right-0 w-[440px] bg-[#0A0A0C] border-l border-white/[0.04] z-50 flex flex-col shadow-[-24px_0_48px_rgba(0,0,0,0.5)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          "fixed inset-y-0 right-0 w-[440px] bg-[#131316] border-l border-white/[0.04] z-50 flex flex-col shadow-[-24px_0_48px_rgba(0,0,0,0.5)] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
           company ? "translate-x-0" : "translate-x-full",
         )}
       >
@@ -78,14 +78,14 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
               </div>
               <div className="flex items-center gap-1">
                 <button
-                  className="p-1.5 rounded-lg hover:bg-[#0A0A0C]/[0.03] text-white/30 hover:text-accent-500 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-[#131316]/[0.03] text-white/30 hover:text-accent-500 transition-all"
                   title="Bookmark"
                 >
                   <Bookmark className="w-4 h-4" />
                 </button>
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-[#0A0A0C]/[0.03] text-white/30 hover:text-white/50 transition-all"
+                  className="p-1.5 rounded-lg hover:bg-[#131316]/[0.03] text-white/30 hover:text-white/50 transition-all"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -186,7 +186,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                       {founder.previousCompanies.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {founder.previousCompanies.map((c) => (
-                            <span key={c} className="px-2 py-0.5 rounded-md bg-[#0A0A0C]/[0.03] border border-white/[0.04] text-[10px] text-white/40">
+                            <span key={c} className="px-2 py-0.5 rounded-md bg-[#131316]/[0.03] border border-white/[0.04] text-[10px] text-white/40">
                               {c}
                             </span>
                           ))}
@@ -206,12 +206,12 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                   </div>
                   <div className="relative">
                     {/* Timeline line */}
-                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[#0A0A0C]/[0.04]" />
+                    <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[#131316]/[0.04]" />
                     <div className="space-y-4">
                       {[...company.fundingRounds].reverse().map((round, i) => (
                         <div key={i} className="relative flex items-start gap-4 pl-10">
                           {/* Timeline node */}
-                          <div className="absolute left-[8px] top-1.5 w-4 h-4 rounded-full border-2 border-accent-400 bg-[#0A0A0C]" />
+                          <div className="absolute left-[8px] top-1.5 w-4 h-4 rounded-full border-2 border-accent-400 bg-[#131316]" />
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-0.5">
                               <span className="text-[13px] font-semibold text-white/70">
@@ -228,7 +228,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                             {round.investors.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1.5">
                                 {round.investors.map((inv) => (
-                                  <span key={inv} className="px-2 py-0.5 rounded-md bg-[#0A0A0C]/[0.03] border border-white/[0.04] text-[10px] text-white/40">
+                                  <span key={inv} className="px-2 py-0.5 rounded-md bg-[#131316]/[0.03] border border-white/[0.04] text-[10px] text-white/40">
                                     {inv}
                                   </span>
                                 ))}
@@ -251,7 +251,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                       {company.technology.map((tech) => (
                         <span
                           key={tech}
-                          className="px-2 py-1 rounded-md bg-[#0A0A0C]/[0.03] border border-white/[0.04] text-[10px] text-white/50"
+                          className="px-2 py-1 rounded-md bg-[#131316]/[0.03] border border-white/[0.04] text-[10px] text-white/50"
                         >
                           {tech}
                         </span>
@@ -264,7 +264,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
                       {company.competitors.map((comp) => (
                         <span
                           key={comp}
-                          className="px-2 py-1 rounded-md bg-[#0A0A0C]/[0.03] border border-white/[0.04] text-[10px] text-white/40"
+                          className="px-2 py-1 rounded-md bg-[#131316]/[0.03] border border-white/[0.04] text-[10px] text-white/40"
                         >
                           {comp}
                         </span>
@@ -303,7 +303,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
             <div className="p-4 border-t border-white/[0.04]">
               <button
                 onClick={() => onViewFull(company)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#0A0A0C]/[0.03] text-white text-[13px] font-semibold hover:bg-[#0A0A0C]/[0.04] transition-all"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[#131316]/[0.03] text-white text-[13px] font-semibold hover:bg-[#131316]/[0.04] transition-all"
               >
                 View full profile
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -318,7 +318,7 @@ export default function QuickViewDrawer({ company, onClose, onViewFull }: Props)
 
 function Metric({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="bg-[#0A0A0C]/[0.02] border border-white/[0.04] rounded-lg p-3">
+    <div className="bg-[#131316]/[0.02] border border-white/[0.04] rounded-lg p-3">
       <div className="flex items-center gap-1.5 text-white/30 mb-1">
         <Icon className="w-3 h-3" />
         <span className="text-[9px] uppercase tracking-wider font-medium">{label}</span>

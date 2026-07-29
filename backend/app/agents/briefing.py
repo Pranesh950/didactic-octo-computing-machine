@@ -14,10 +14,9 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.llm import invoke_with_fallback
 from app.models import AgentState
-from app.tools.startupwiki import get_company_profile, _search_startups_scored
-from app.data.mock_db import STARTUPS
+from app.tools.startupwiki import get_company_profile, _search_startups_scored, _get_all_startups
 from app.pipelines.memo_builder import build_full_memo
-from app.pipelines.scoring import calculate_vc_score
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,14 +69,14 @@ def _build_fallback_briefing(query: str, company_id: str | None) -> str:
     found_id = company_id or _find_company_from_query(query)
 
     if not found_id:
-        names = ", ".join(s["name"] for s in STARTUPS[:5])
+        names = ", ".join(s["name"] for s in _get_all_startups()[:5])
         return (
             f"## Company Not Found\n\n"
             f"I couldn't find a company matching \"{query[:80]}\" in the database.\n\n"
             f"**Companies I can brief you on:**\n\n" +
             "\n".join(
                 f"- **{s['name']}** — {s.get('description', '')} ({s.get('stage', '')}, {s.get('industry', '')})"
-                for s in STARTUPS
+                for s in _get_all_startups()
             ) +
             f"\n\nVisit the **Discover** tab to browse all companies."
         )
@@ -116,7 +115,7 @@ async def briefing_agent(state: AgentState) -> dict:
             "briefing_result": (
                 f"I need a specific company to generate a briefing. "
                 f"Try: \"brief me on Neural Labs\" or \"analyze RoboSynth\". "
-                f"Available companies: {', '.join(s['name'] for s in STARTUPS[:5])}."
+                f"Available companies: {', '.join(s['name'] for s in _get_all_startups()[:5])}."
             )
         }
 

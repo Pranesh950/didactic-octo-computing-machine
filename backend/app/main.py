@@ -118,9 +118,10 @@ async def agent_stream(req: AgentRequest):
 
 @app.get("/api/companies")
 async def list_companies():
-    """Return all companies in the database."""
-    from app.tools.startupwiki import STARTUPS
-    return {"companies": STARTUPS}
+    """Return all companies from Firestore."""
+    from app.tools.startupwiki import _get_all_startups
+    companies = _get_all_startups()
+    return {"companies": companies}
 
 
 # ── Health check ─────────────────────────────────────────

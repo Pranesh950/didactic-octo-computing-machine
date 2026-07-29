@@ -4,7 +4,7 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  html, body, #root { height: 100%; background: #121214; }
+  html, body, #root { height: 100%; background: #18181b; }
   body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -32,6 +32,6 @@
     @apply border border-white/[0.04] rounded-lg;
   }
   .glass {
-    @apply bg-[#121214]/80 backdrop-blur-sm;
+    @apply bg-[#18181b]/80 backdrop-blur-sm;
   }
 }

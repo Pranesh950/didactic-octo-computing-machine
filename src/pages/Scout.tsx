@@ -200,7 +200,7 @@ interface InlineCompany {
 
 function InlineCompanyGrid({ companies }: { companies: InlineCompany[] }) {
   return (
-    <div className="my-3 rounded-xl bg-[#1A1A1E] border border-white/[0.04] overflow-hidden">
+    <div className="my-3 rounded-xl bg-[#212126] border border-white/[0.04] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-[12px]">
           <thead>
@@ -450,9 +450,9 @@ export default function Scout() {
   const hasConversation = messages.length > 0 || isRunning;
 
   return (
-    <div className="flex h-full bg-[#121214] text-white relative overflow-hidden">
+    <div className="flex h-full bg-[#18181b] text-white relative overflow-hidden">
       {/* ── Chat History Rail (Left) ── */}
-      <div className="w-[260px] flex-shrink-0 bg-[#0A0A0C] border-r border-white/[0.06] flex flex-col">
+      <div className="w-[260px] flex-shrink-0 bg-[#131316] border-r border-white/[0.06] flex flex-col">
         {/* New session button */}
         <div className="p-3">
           <button
@@ -517,11 +517,11 @@ export default function Scout() {
 
       {/* ── Conversational Viewport (Center) ── */}
       <div className={cn(
-        "flex flex-col flex-1 min-w-0 bg-[#121214] transition-all duration-300",
+        "flex flex-col flex-1 min-w-0 bg-[#18181b] transition-all duration-300",
         workspaceOpen ? "mr-[420px]" : "",
       )}>
         {/* Header bar */}
-        <div className="px-6 py-3 border-b border-white/[0.04] bg-[#121214]/90 backdrop-blur-sm flex items-center justify-between">
+        <div className="px-6 py-3 border-b border-white/[0.04] bg-[#18181b]/90 backdrop-blur-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
               <Crosshair className="w-4 h-4 text-blue-400" />
@@ -753,7 +753,7 @@ export default function Scout() {
       )}>
         <div className="max-w-2xl mx-auto">
           <div className={cn(
-            "relative bg-[#1a1a1c]/80 backdrop-blur-xl border rounded-2xl p-3 transition-all duration-300",
+            "relative bg-[#212126]/80 backdrop-blur-xl border rounded-2xl p-3 transition-all duration-300",
             "border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
             "focus-within:border-white/[0.12] focus-within:shadow-[0_0_24px_rgba(59,130,246,0.08)]",
           )}>
@@ -782,7 +782,7 @@ export default function Scout() {
                 className={cn(
                   "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0",
                   query.trim() && !isRunning
-                    ? "bg-white text-[#121214] hover:bg-white/90 hover:scale-[1.04] active:scale-[0.97]"
+                    ? "bg-white text-[#18181b] hover:bg-white/90 hover:scale-[1.04] active:scale-[0.97]"
                     : "bg-white/[0.04] text-white/20",
                 )}
               >
@@ -799,7 +799,7 @@ export default function Scout() {
 
       {/* ── Research Hub (Slide-over) ── */}
       <div className={cn(
-        "absolute right-0 top-0 bottom-0 w-[420px] bg-[#0A0A0C] border-l border-white/[0.06] flex flex-col z-10",
+        "absolute right-0 top-0 bottom-0 w-[420px] bg-[#131316] border-l border-white/[0.06] flex flex-col z-10",
         "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
         "shadow-[-24px_0_48px_rgba(0,0,0,0.5)]",
         workspaceOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",

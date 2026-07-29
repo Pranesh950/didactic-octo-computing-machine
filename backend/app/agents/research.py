@@ -21,9 +21,9 @@ from langgraph.prebuilt import create_react_agent
 
 from app.llm import get_primary_llm
 from app.models import AgentState
-from app.tools.startupwiki import RESEARCH_TOOLS, _search_startups_scored
+from app.tools.startupwiki import RESEARCH_TOOLS, _search_startups_scored, _get_all_startups
 from app.pipelines.memo_builder import build_full_memo
-from app.data.mock_db import STARTUPS
+
 logger = logging.getLogger(__name__)
 
 # Import Serper tools gracefully — degrade if httpx is unavailable
@@ -160,7 +160,8 @@ async def _deterministic_research(query: str, company_id: str | None) -> str:
 def _resolve_company(query: str, company_id: str | None) -> dict | None:
     """Find the company being researched."""
     if company_id:
-        for c in STARTUPS:
+        startups = _get_all_startups()
+        for c in startups:
             if c["id"] == company_id:
                 return c
 

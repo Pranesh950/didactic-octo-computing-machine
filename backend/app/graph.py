@@ -52,6 +52,9 @@ async def router_decide(state: AgentState) -> Literal["research", "briefing", "g
         return "research"
     elif intent == "briefing" and state.company_id:
         return "briefing"
+    elif intent == "briefing":
+        # User asked for briefing but no company_id — try research instead
+        return "research"
     else:
         return "general"
 
@@ -59,36 +62,27 @@ async def router_decide(state: AgentState) -> Literal["research", "briefing", "g
 # ── General handler ──────────────────────────────────────
 
 async def general_handler(state: AgentState) -> dict:
-    """Handle general queries (no sub-agent needed).
+    """Handle general queries by falling through to the research agent.
 
-    Returns directly to END — no synthesis needed for platform-level queries.
+    There are no truly "general" questions — if someone asks anything,
+    we should try to research it. Returns a research_result so the
+    synthesizer picks it up.
     """
     query = state.user_query.strip()
     q = query.lower()
 
-    # Short greeting
-    if any(g in q for g in ["hi", "hello", "hey", "yo", "sup"]):
+    # Short greeting — no need to research
+    if len(q) < 10 and any(g in q for g in ["hi", "hello", "hey", "yo", "sup", "thanks", "ok"]):
         return {
-            "final_response": (
-                "Hey! I'm your StartupWiki Terminal AI associate. I can help you:\n\n"
-                "• **Research** — find startups by sector, stage, or technology (e.g. \"find AI robotics startups\")\n"
-                "• **Brief** — generate detailed memos on specific companies (e.g. \"analyze Neural Labs\")\n"
-                "• **Discover** — browse our database of curated startups in the Discover tab\n\n"
-                "What would you like to explore?"
-            ),
+            "final_response": "Hey! I'm your StartupWiki Terminal AI associate. Ask me to research any startup, market, or investment topic.",
             "intent": "general",
         }
 
-    # Queries about specific companies that weren't routed to research
+    # Route everything else through the research agent by setting intent
+    # so the router re-evaluates
     return {
-        "final_response": (
-            f"I'd love to help with your query about \"{query[:80]}\". Try being more specific:\n\n"
-            "• **Research a sector**: \"Find AI infrastructure startups\"\n"
-            "• **Brief a company**: \"Analyze Neural Labs for investment\"\n"
-            "• **Discover data**: Use the Discover tab to filter by industry, stage, and funding\n\n"
-            "I have data on companies like Neural Labs, RoboSynth, Synthex Bio, Solara Climate, and more."
-        ),
-        "intent": "general",
+        "intent": "research",
+        "final_response": None,
     }
 
 
@@ -124,8 +118,8 @@ def build_graph() -> StateGraph:
     workflow.add_edge("research", "synthesize")
     workflow.add_edge("briefing", "synthesize")
 
-    # General handler → END (no synthesis needed)
-    workflow.add_edge("general", END)
+    # General handler → research → synthesizer (try to research everything)
+    workflow.add_edge("general", "research")
 
     # Synthesizer → END
     workflow.add_edge("synthesize", END)

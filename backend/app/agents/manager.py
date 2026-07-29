@@ -89,23 +89,26 @@ def _keyword_intent(query: str, company_id: str | None) -> str:
     if company_id:
         return "briefing"
 
-    # briefing keywords — user asking about a specific company
+    # briefing keywords — user specifically asking for an investment memo
     briefing_keywords = [
         "briefing", "brief me on", "memo", "report on", " report",
-        "deep dive", "profile of", "analyze ", "analysis of",
-        "company report", "investment memo", "tell me about",
+        "deep dive", "investment memo", "analyze ",
     ]
     if any(kw in q for kw in briefing_keywords):
         return "briefing"
 
-    # research keywords — user searching/discovering
+    # research keywords — very broad: any startup/VC/investor/tech question
     research_keywords = [
         "find", "search", "discover", "list", "show me",
         "startups", "companies", "market", "landscape",
         "sector", "industry", "trends", "competitors",
         "compare", "looking for", "opportunities",
         "ai", "robotics", "biotech", "climate", "fintech",
-        "who is", "what is", "what are",
+        "who is", "what is", "what are", "how does",
+        "explain", "tell me", "vc", "venture",
+        "investor", "accelerator", "incubator", "fund",
+        "yc", "y combinator", "techstars", "sequoia",
+        "a16z", "benchmark", "founders fund",
     ]
     if any(kw in q for kw in research_keywords):
         return "research"
@@ -115,6 +118,10 @@ def _keyword_intent(query: str, company_id: str | None) -> str:
 
 async def manager_synthesize(state: AgentState) -> dict:
     """Manager agent: synthesize sub-agent results into final response."""
+    # Preserve greeting responses from general_handler (don't overwrite)
+    if state.final_response:
+        return {}
+
     parts: list[str] = []
 
     if state.research_result:
@@ -124,9 +131,8 @@ async def manager_synthesize(state: AgentState) -> dict:
         parts.append(f"## Investment Briefing\n\n{state.briefing_result}")
 
     if not parts:
-        # No sub-agents ran — handle general query directly
         return {
-            "final_response": f"I'm the StartupWiki Terminal AI associate. I can help you research startups, analyze companies, and generate investment memos. What would you like to explore?",
+            "final_response": "I'm the StartupWiki Terminal AI associate. I can help you research startups, analyze companies, and generate investment memos. What would you like to explore?",
         }
 
     combined = "\n\n---\n\n".join(parts)
