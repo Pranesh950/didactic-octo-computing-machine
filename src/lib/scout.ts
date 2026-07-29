@@ -7,7 +7,7 @@
  */
 import type { ChatMessage } from "@/types/openai";
 import { getClient } from "@/lib/api-client";
-import { startups } from "@/data/mock";
+import { getCompanies } from "@/lib/backend-client";
 
 export interface ScoutResult {
   topCompanies: Array<{ name: string; stage: string; insight: string }>;
@@ -21,17 +21,23 @@ export interface ScoutResult {
 
 export type ScoutProgressCallback = (step: string, token?: string) => void;
 
-const SYSTEM_PROMPT = `You are Scout, an AI research agent at StartupWiki Terminal — a startup intelligence platform for venture capital investors.
+function buildSystemPrompt(startups: Array<{ id: string; name: string; stage?: string; industry?: string; description?: string; founded?: number; headquarters?: string; hq?: string; total_funding?: number; totalFunding?: number; founders?: Array<{ name: string }> }>) {
+  const companyLines = startups
+    .filter(s => s.name && s.description)
+    .slice(0, 20)
+    .map((s) => {
+      const funding = s.total_funding || s.totalFunding || 0;
+      const founders = (s.founders || []).map(f => f.name).join(", ") || "N/A";
+      return `- ${s.name} (${s.stage || 'N/A'}, ${s.industry || 'N/A'}): ${s.description}. Founded ${s.founded || 'N/A'}, HQ ${s.headquarters || s.hq || 'N/A'}. Total funding: $${(funding / 1_000_000).toFixed(0)}M. Founders: ${founders}.`;
+    })
+    .join("\n");
+
+  return `You are Scout, an AI research agent at StartupWiki Terminal — a startup intelligence platform for venture capital investors.
 
 You have access to a database of startups. When asked to research, you analyze the available data and produce a structured report.
 
 AVAILABLE STARTUPS IN DATABASE:
-${startups
-  .map(
-    (s) =>
-      `- ${s.name} (${s.stage}, ${s.industry}): ${s.description}. Founded ${s.founded}, HQ ${s.headquarters}. Total funding: $${(s.totalFunding / 1_000_000).toFixed(0)}M. Founders: ${s.founders.map((f) => f.name).join(", ")}.`,
-  )
-  .join("\n")}
+${companyLines}
 
 INSTRUCTIONS:
 1. Analyze the user's research question against the database
@@ -52,6 +58,7 @@ INSTRUCTIONS:
 [Key risks and concerns to watch]
 
 Be concise, data-driven, and actionable. Use a professional VC tone.`;
+}
 
 export async function runScoutResearch(
   query: string,
@@ -59,12 +66,15 @@ export async function runScoutResearch(
 ): Promise<ScoutResult> {
   const client = getClient();
   const config = client.getConfig();
+
+  const startups = await getCompanies();
+  const SYSTEM_PROMPT = buildSystemPrompt(startups);
+  onProgress?.("searching", undefined);
+
   const messages: ChatMessage[] = [
     { role: "system" as const, content: SYSTEM_PROMPT },
     { role: "user" as const, content: query },
   ];
-
-  onProgress?.("searching", undefined);
 
   let fullContent = "";
   let modelUsed = config.model;

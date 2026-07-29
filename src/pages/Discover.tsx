@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, PanelLeftClose, PanelLeft } from "lucide-react";
-import { startups } from "@/data/mock";
+import { useStartups } from "@/hooks/useStartups";
 import type { Startup } from "@/data/mock";
 import {
   INITIAL_FILTERS,
@@ -18,6 +18,7 @@ import QuickViewDrawer from "@/components/discover/QuickViewDrawer";
 
 export default function Discover() {
   const navigate = useNavigate();
+  const { startups, loading } = useStartups();
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [sort, setSort] = useState<SortConfig | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Startup | null>(null);
@@ -26,6 +27,15 @@ export default function Discover() {
   const filterOptions = extractFilterOptions(startups);
   const processed = useDiscoverEngine(startups, filters, sort);
   const activeFilters = getActiveFilters(filters, (updates) => setFilters((f) => ({ ...f, ...updates })));
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+        <p className="text-sm text-white/40 mt-4">Loading startup database...</p>
+      </div>
+    );
+  }
 
   const handleViewFull = useCallback(
     (company: Startup) => {

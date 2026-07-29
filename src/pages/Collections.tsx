@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import Badge from "@/components/shared/Badge";
 import { cn } from "@/lib/utils";
-import { collections, startups, type Collection, type Startup } from "@/data/mock";
+import { useStartups } from "@/hooks/useStartups";
+import { collections, type Collection, type Startup } from "@/data/mock";
 
 type ViewMode = "table" | "board";
 type SortField = "name" | "industry" | "stage" | "totalFunding" | "founded";
@@ -43,12 +44,7 @@ const stageVariant: Record<string, "default" | "success" | "warning" | "info" | 
   "Series C+": "warning",
 };
 
-// ── Resolve collection items to actual companies ─────────────
-function resolveCompanies(collection: Collection): Startup[] {
-  return collection.items
-    .map((id) => startups.find((s) => s.id === id))
-    .filter((s): s is Startup => s !== undefined);
-}
+
 
 // ── Column definitions ──────────────────────────────────────
 interface ColumnDef {
@@ -68,6 +64,7 @@ const columns: ColumnDef[] = [
 ];
 
 export default function Collections() {
+  const { startups } = useStartups();
   const [selectedId, setSelectedId] = useState<string>(collections[0]?.id ?? "");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [sortField, setSortField] = useState<SortField>("name");
@@ -75,9 +72,13 @@ export default function Collections() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const selectedCollection = collections.find((c) => c.id === selectedId);
-  const companies = useMemo(
-    () => (selectedCollection ? resolveCompanies(selectedCollection) : []),
-    [selectedCollection],
+    const companies = useMemo(
+    () => selectedCollection
+      ? selectedCollection.items
+          .map((id) => startups.find((s: any) => s.id === id))
+          .filter((s): s is any => s !== undefined) as Startup[]
+      : [],
+    [selectedCollection, startups],
   );
 
   // Sort

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { TrendingUp, BookOpen, Sparkles, Users, DollarSign, Clock, ChevronRight } from "lucide-react";
-import { marketIntel, researchProjects, startups } from "@/data/mock";
+import { marketIntel, researchProjects } from "@/data/mock";
+import { useStartups } from "@/hooks/useStartups";
 import Card from "@/components/shared/Card";
 import CompanyCard from "@/components/shared/CompanyCard";
 import Badge from "@/components/shared/Badge";
@@ -13,6 +14,7 @@ const intelIcons = {
 } as const;
 
 export default function Home() {
+  const { startups } = useStartups();
   return (
     <div className="max-w-5xl mx-auto p-6 space-y-10">
       {/* Greeting */}
