@@ -24,7 +24,7 @@ interface SidebarProps {
 
 const Sidebar = memo(function Sidebar({ onOpenCommand, userEmail }: SidebarProps) {
   return (
-    <aside className="w-52 bg-[#0a0b0d] text-gray-300 flex flex-col flex-shrink-0 border-r border-gray-800 select-none">
+    <aside className="w-52 bg-gray-950 text-gray-300 flex flex-col flex-shrink-0 border-r border-gray-800 select-none">
       {/* Logo */}
       <div className="px-4 py-3.5 border-b border-gray-800">
         <div className="flex items-center gap-2.5">

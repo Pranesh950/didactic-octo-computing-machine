@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid, List, Eye } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid, List, Eye, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Badge from "@/components/shared/Badge";
 import CompanyLogo from "@/components/shared/CompanyLogo";
@@ -140,16 +140,28 @@ function TableView({ data, sort, onSort, onSelectCompany }: Props) {
                 </span>
               </td>
               <td className="px-2 py-3">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectCompany(company);
-                  }}
-                  className="p-1.5 rounded-md opacity-0 group-hover/row:opacity-100 text-gray-500 hover:text-accent-400 hover:bg-accent-500/10 transition-all"
-                  title="Quick view"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-0.5 opacity-0 group-hover/row:opacity-100 transition-all">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectCompany(company);
+                    }}
+                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-500 hover:bg-accent-50 transition-all"
+                    title="Quick view"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Bookmark — coming soon
+                    }}
+                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-500 hover:bg-accent-50 transition-all"
+                    title="Bookmark"
+                  >
+                    <Bookmark className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

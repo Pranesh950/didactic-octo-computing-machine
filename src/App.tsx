@@ -65,7 +65,7 @@ export default function App() {
   // ── Loading state ──────────────────────────────────
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0d0e10]">
+      <div className="flex items-center justify-center h-screen bg-gray-1000">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-accent-400 animate-spin mx-auto mb-4" />
           <p className="text-[13px] text-gray-500 font-mono">Loading StartupWiki…</p>
@@ -81,12 +81,12 @@ export default function App() {
 
   // ── Authenticated app ──────────────────────────────
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0d0e10]">
+    <div className="flex h-screen overflow-hidden bg-gray-1000">
       <Sidebar
         onOpenCommand={openCommand}
         userEmail={user.email ?? undefined}
       />
-      <main className="flex-1 overflow-y-auto bg-[#0d0e10]">
+      <main className="flex-1 overflow-y-auto bg-gray-1000">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />

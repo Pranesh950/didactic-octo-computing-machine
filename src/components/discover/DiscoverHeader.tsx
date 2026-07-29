@@ -1,4 +1,4 @@
-import { Search, Save, Download, Building2, Users } from "lucide-react";
+import { Search, Save, Download, Bell, Building2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DiscoverMode } from "@/lib/discover-engine";
 
@@ -18,7 +18,7 @@ export default function DiscoverHeader({
   resultCount,
 }: Props) {
   return (
-    <div className="px-5 py-3 border-b border-gray-800/60 bg-[#0b0c0e]/80 backdrop-blur-sm">
+    <div className="px-5 py-3 border-b border-gray-800/60 bg-gray-950/80 backdrop-blur-sm">
       <div className="flex items-center gap-4">
         {/* Mode toggle */}
         <div className="flex items-center bg-gray-900/60 border border-gray-800 rounded-lg p-0.5">
@@ -73,18 +73,26 @@ export default function DiscoverHeader({
           <button
             disabled
             title="Coming soon"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-600 transition-all font-medium cursor-not-allowed opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-600 transition-all font-medium cursor-not-allowed opacity-50"
           >
             <Save className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Save</span>
+            <span className="hidden sm:inline">Save Search</span>
           </button>
           <button
             disabled
             title="Coming soon"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-600 transition-all font-medium cursor-not-allowed opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-600 transition-all font-medium cursor-not-allowed opacity-50"
+          >
+            <Bell className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Create Alert</span>
+          </button>
+          <button
+            disabled
+            title="Coming soon"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-600 transition-all font-medium cursor-not-allowed opacity-50"
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden sm:inline">Export CSV</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, PanelLeftClose, PanelLeft } from "lucide-react";
 import { startups } from "@/data/mock";
 import type { Startup } from "@/data/mock";
 import {
@@ -21,6 +21,7 @@ export default function Discover() {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [sort, setSort] = useState<SortConfig | null>(null);
   const [selectedCompany, setSelectedCompany] = useState<Startup | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const filterOptions = extractFilterOptions(startups);
   const processed = useDiscoverEngine(startups, filters, sort);
@@ -74,11 +75,25 @@ export default function Discover() {
       {/* Body: sidebar + grid */}
       <div className="flex flex-1 min-h-0">
         {/* Filter Sidebar */}
-        <DiscoverSidebar
-          filters={filters}
-          options={filterOptions}
-          onUpdate={(updates) => setFilters((f) => ({ ...f, ...updates }))}
-        />
+        {!sidebarCollapsed && (
+          <DiscoverSidebar
+            filters={filters}
+            options={filterOptions}
+            onUpdate={(updates) => setFilters((f) => ({ ...f, ...updates }))}
+          />
+        )}
+        {/* Sidebar toggle button */}
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="flex-shrink-0 w-8 border-r border-gray-200 hover:bg-gray-100 transition-colors flex items-start justify-center pt-3 text-gray-400 hover:text-gray-600"
+          title={sidebarCollapsed ? "Show filters" : "Hide filters"}
+        >
+          {sidebarCollapsed ? (
+            <PanelLeft className="w-4 h-4" />
+          ) : (
+            <PanelLeftClose className="w-4 h-4" />
+          )}
+        </button>
 
         {/* Main content area */}
         <div className="flex flex-col flex-1 min-w-0">

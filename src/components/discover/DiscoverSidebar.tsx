@@ -144,7 +144,7 @@ export default function DiscoverSidebar({ filters, options, onUpdate }: Props) {
     (filters.employeesMin !== null || filters.employeesMax !== null ? 1 : 0);
 
   return (
-    <div className="w-[260px] flex-shrink-0 border-r border-gray-800/60 bg-[#0b0c0e] overflow-y-auto">
+    <div className="w-[260px] flex-shrink-0 border-r border-gray-800/60 bg-gray-950 overflow-y-auto">
       {/* Sidebar header */}
       <div className="px-4 py-3 border-b border-gray-800/60 flex items-center gap-2">
         <SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" />

@@ -120,7 +120,7 @@ export default function Collections() {
   return (
     <div className="flex h-full">
       {/* ── Left Sidebar: Collection list (Notion-style) ── */}
-      <div className="w-64 flex-shrink-0 border-r border-gray-800 bg-[#0b0c0e] flex flex-col">
+      <div className="w-64 flex-shrink-0 border-r border-gray-800 bg-gray-950 flex flex-col">
         {/* Header */}
         <div className="px-4 py-3.5 border-b border-gray-800">
           <div className="flex items-center gap-2 mb-1">
@@ -188,9 +188,9 @@ export default function Collections() {
       </div>
 
       {/* ── Right: Content / Database view ── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0d0e10]">
+      <div className="flex-1 flex flex-col min-w-0 bg-gray-1000">
         {/* Top bar: collection info + view switcher + search */}
-        <div className="px-5 py-3.5 border-b border-gray-800 bg-[#0b0c0e]">
+        <div className="px-5 py-3.5 border-b border-gray-800 bg-gray-950">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3 min-w-0">
               {selectedCollection && selectedConfig && (

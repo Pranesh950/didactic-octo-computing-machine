@@ -209,7 +209,7 @@ function AnimatedBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Base gradient */}
-      <div className="absolute inset-0 bg-[#0d0e10]" />
+      <div className="absolute inset-0 bg-gray-1000" />
 
       {/* Animated orbs */}
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-accent-500/8 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: "8s" }} />
@@ -220,7 +220,7 @@ function AnimatedBackground() {
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }}
       />
@@ -287,7 +287,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0e10] text-gray-100 overflow-x-hidden">
+    <div className="min-h-screen bg-gray-1000 text-gray-100 overflow-x-hidden">
       <AnimatedBackground />
 
       {/* ── Navigation ── */}
@@ -319,7 +319,7 @@ export default function Landing() {
               </button>
               <button
                 onClick={handleSignIn}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded-lg text-[13px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] font-mono"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-0 rounded-lg text-[13px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] font-mono"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in
@@ -351,7 +351,7 @@ export default function Landing() {
               </button>
               <button
                 onClick={handleSignIn}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors font-mono mt-2"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-0 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors font-mono mt-2"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in with Google
@@ -389,7 +389,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <button
               onClick={handleSignIn}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white text-gray-900 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/5 font-mono w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white text-gray-0 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/5 font-mono w-full sm:w-auto justify-center"
             >
               <LogIn className="w-4 h-4" />
               Sign in with Google
@@ -397,7 +397,7 @@ export default function Landing() {
             </button>
             <button
               onClick={() => scrollToSection("terminal")}
-              className="inline-flex items-center gap-2 px-6 py-3.5 border border-gray-700 text-gray-300 rounded-xl text-[15px] font-medium hover:bg-gray-800/50 transition-all font-mono w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2 px-6 py-3.5 border border-gray-700 text-gray-300 rounded-xl text-[15px] font-medium hover:bg-gray-800 transition-all font-mono w-full sm:w-auto justify-center"
             >
               <Terminal className="w-4 h-4" />
               See it in action
@@ -538,7 +538,7 @@ export default function Landing() {
             </p>
             <button
               onClick={handleSignIn}
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-gray-900 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/5 font-mono"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-gray-0 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/5 font-mono"
             >
               <LogIn className="w-4 h-4" />
               Get started free
