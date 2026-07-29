@@ -31,9 +31,7 @@ export interface Company {
   [key: string]: unknown;
 }
 
-const rawUrl =
-  import.meta.env.VITE_BACKEND_URL || "https://didactic-octo-computing-machine-production.up.railway.app";
-const BACKEND_URL = rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`;
+const BACKEND_URL = "https://didactic-octo-computing-machine-production.up.railway.app";
 
 export class BackendError extends Error {
   status: number;
