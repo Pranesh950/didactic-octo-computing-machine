@@ -62,9 +62,67 @@ async def research_agent(state: AgentState) -> dict:
                 response = msg.content
                 break
 
+        if not response:
+            response = _build_fallback_research_response(query)
+
         return {"research_result": response}
     except Exception as e:
-        logger.error("Research agent failed: %s", e)
+        logger.error("Research agent failed, using fallback: %s", e)
         return {
-            "research_result": "Research agent encountered an error. Please try again with a different query."
+            "research_result": _build_fallback_research_response(query)
         }
+
+
+def _build_fallback_research_response(query: str) -> str:
+    """Build a database-driven response when the LLM is unavailable."""
+    from app.tools.startupwiki import STARTUPS
+
+    q = query.lower()
+    matches = []
+
+    for s in STARTUPS:
+        score = 0
+        name = s.get("name", "").lower()
+        desc = s.get("description", "").lower()
+        industry = s.get("industry", "").lower()
+        tags = " ".join(s.get("tags", [])).lower()
+        tech = " ".join(s.get("technology", [])).lower()
+
+        for word in q.split():
+            if word in name: score += 3
+            if word in desc: score += 2
+            if word in industry: score += 2
+            if word in tags: score += 1
+            if word in tech: score += 1
+
+        if score > 0:
+            matches.append((score, s))
+
+    matches.sort(key=lambda x: x[0], reverse=True)
+
+    if not matches:
+        names = ", ".join(s["name"] for s in STARTUPS[:5])
+        return (
+            f"## Research Results\n\n"
+            f"I searched the database for \"{query}\" but didn't find exact matches. "
+            f"Here are some companies in our database you might find relevant: {names}.\n\n"
+            f"Try searching by industry (AI, Biotech, Climate, Fintech, Robotics) or use the Discover tab to browse all companies."
+        )
+
+    parts = []
+    for _, s in matches[:5]:
+        funding = s.get("total_funding", 0)
+        parts.append(
+            f"### {s['name']}\n"
+            f"**{s.get('stage', 'N/A')} | {s.get('industry', 'N/A')} | Founded {s.get('founded', 'N/A')}**\n\n"
+            f"{s.get('description', '')}\n\n"
+            f"- Total Funding: ${funding/1_000_000:.0f}M\n"
+            f"- Employees: {s.get('employeeCount', 'N/A')}\n"
+            f"- HQ: {s.get('headquarters', 'N/A')}\n"
+        )
+
+    return (
+        f"## Research Results for \"{query}\"\n\n"
+        f"Found {len(matches)} matching companies. Here are the top results:\n\n"
+        + "\n---\n\n".join(parts)
+    )

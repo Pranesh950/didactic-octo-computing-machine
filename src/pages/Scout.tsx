@@ -21,8 +21,12 @@ import {
   ArrowLeft,
   MessageSquare,
   FileSpreadsheet,
+  Pin,
+  Plus,
+  ExternalLink,
 } from "lucide-react";
 import Badge from "@/components/shared/Badge";
+import CompanyLogo from "@/components/shared/CompanyLogo";
 import { cn } from "@/lib/utils";
 import { runAgentStream } from "@/lib/backend-client";
 import { addFile, subscribeToFiles } from "@/data/workspace";
@@ -56,69 +60,207 @@ interface ChatMessage {
 }
 
 const suggestions = [
+  { title: "AI Robotics", query: "Find promising AI robotics startups founded by researchers from top labs", icon: Zap },
+  { title: "Synthetic Biology", query: "Map the synthetic biology landscape for companies using generative AI", icon: Sparkles },
+  { title: "Climate Tech", query: "Identify early-stage climate tech startups with strong technical moats", icon: Search },
+  { title: "Agent Infrastructure", query: "Find AI agent companies building autonomous workflow infrastructure", icon: Brain },
+];
+
+// ── Mock chat history ─────────────────────────────────
+
+interface ChatThread {
+  id: string;
+  label: string;
+  query: string;
+  time: string;
+  pinned?: boolean;
+}
+
+const PINNED_THREADS: ChatThread[] = [
+  { id: "p1", label: "Stealth AI Infra - Ex-Stripe", query: "Find AI infra startups with Stripe alumni", time: "2h ago", pinned: true },
+  { id: "p2", label: "Climate Deep Tech Watchlist", query: "Track climate tech Series A+ companies", time: "5h ago", pinned: true },
+];
+
+const RECENT_THREADS: { group: string; threads: ChatThread[] }[] = [
   {
-    title: "AI Robotics",
-    query: "Find promising AI robotics startups founded by researchers from top labs",
-    gradient: "from-violet-500/20 to-purple-600/10",
-    icon: Zap,
+    group: "Today",
+    threads: [
+      { id: "t1", label: "Seed-stage Robotics Search", query: "Find seed-stage AI robotics startups", time: "11:18 AM" },
+      { id: "t2", label: "Rex.fit Company Analysis", query: "can u make a report on Rex.fit", time: "11:17 AM" },
+    ],
   },
   {
-    title: "Synthetic Biology",
-    query: "Map the synthetic biology landscape for companies using generative AI",
-    gradient: "from-emerald-500/20 to-teal-600/10",
-    icon: Sparkles,
-  },
-  {
-    title: "Climate Tech",
-    query: "Identify early-stage climate tech startups with strong technical moats",
-    gradient: "from-sky-500/20 to-blue-600/10",
-    icon: Search,
-  },
-  {
-    title: "Agent Infrastructure",
-    query: "Find AI agent companies building autonomous workflow infrastructure",
-    gradient: "from-amber-500/20 to-orange-600/10",
-    icon: Brain,
+    group: "Yesterday",
+    threads: [
+      { id: "t3", label: "GenAI Drug Discovery", query: "Map the AI drug discovery landscape", time: "3:42 PM" },
+      { id: "t4", label: "Fintech Infrastructure", query: "Find fintech infra startups in NYC", time: "10:15 AM" },
+    ],
   },
 ];
 
-// ── Mode Toggle ───────────────────────────────────────
+// ── Mode Toggle Pill ──────────────────────────────────
 
-function ModeToggle({
-  mode,
-  onChange,
-}: {
-  mode: "quick" | "research";
-  onChange: (m: "quick" | "research") => void;
-}) {
+function ModeTogglePill({ mode, onChange }: { mode: "quick" | "research"; onChange: (m: "quick" | "research") => void }) {
   return (
-    <div className="flex items-center bg-gray-900/60 border border-gray-800 rounded-lg p-0.5">
+    <div className="flex items-center bg-white/5 rounded-full p-0.5 border border-white/5">
       <button
         onClick={() => onChange("quick")}
         className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
+          "flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
           mode === "quick"
-            ? "bg-gray-800 text-gray-200 shadow-sm"
-            : "text-gray-500 hover:text-gray-300",
+            ? "bg-white/10 text-white border border-white/10"
+            : "text-white/40 hover:text-white/70",
         )}
-        title="Quick conversational answer"
       >
         <MessageSquare className="w-3 h-3" />
-        Quick
+        Quick Answer
       </button>
       <button
         onClick={() => onChange("research")}
         className={cn(
-          "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
+          "flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
           mode === "research"
-            ? "bg-accent-500/20 text-accent-400 shadow-sm"
-            : "text-gray-500 hover:text-gray-300",
+            ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+            : "text-white/40 hover:text-white/70",
         )}
-        title="Full research report"
       >
         <FileSpreadsheet className="w-3 h-3" />
-        Report
+        Deep Report
       </button>
+    </div>
+  );
+}
+
+// ── Thinking State ────────────────────────────────────
+
+function ThinkingState({ steps, liveContent }: { steps: AgentStep[]; liveContent: string }) {
+  const [expanded, setExpanded] = useState(true);
+  const runningStep = steps.find((s) => s.status === "running");
+  const doneCount = steps.filter((s) => s.status === "complete").length;
+  const progressPct = (doneCount / steps.length) * 100;
+
+  return (
+    <div className="mb-1">
+      {/* Gradient progress bar */}
+      <div className="h-[1px] w-full bg-white/5 rounded-full overflow-hidden mb-3">
+        <div
+          className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-blue-400 transition-all duration-700 ease-out rounded-full"
+          style={{ width: `${Math.max(progressPct, 5)}%` }}
+        />
+      </div>
+
+      {/* Accordion header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-[11px] text-white/50 hover:text-white/70 transition-colors w-full"
+      >
+        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <span className="font-medium">Scout is working{runningStep ? ` — ${runningStep.label.toLowerCase()}` : "…"}</span>
+        <span className="text-[10px] text-white/30 ml-auto">{doneCount}/{steps.length} steps</span>
+      </button>
+
+      {/* Expanded steps */}
+      {expanded && (
+        <div className="mt-2 pl-3.5 border-l border-white/5 space-y-1.5">
+          {steps.map((step) => (
+            <div key={step.id} className="flex items-center gap-2">
+              <div className={cn(
+                "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                step.status === "complete" && "bg-emerald-400",
+                step.status === "running" && "bg-blue-400 animate-pulse",
+                step.status === "pending" && "bg-white/10",
+              )} />
+              <span className={cn(
+                "text-[11px]",
+                step.status === "complete" && "text-white/40",
+                step.status === "running" && "text-white/80",
+                step.status === "pending" && "text-white/20",
+              )}>
+                {step.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Inline Company Card ───────────────────────────────
+
+interface InlineCompany {
+  name: string;
+  stage: string;
+  employees: number;
+  growth?: string;
+  funding: string;
+  location: string;
+  description?: string;
+}
+
+function InlineCompanyGrid({ companies }: { companies: InlineCompany[] }) {
+  return (
+    <div className="my-3 rounded-xl bg-[#1A1A1E] border border-white/[0.04] overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12px]">
+          <thead>
+            <tr className="border-b border-white/[0.04]">
+              <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/30 uppercase tracking-wider">Company</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/30 uppercase tracking-wider">Stage</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/30 uppercase tracking-wider">Team</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/30 uppercase tracking-wider">Funding</th>
+              <th className="text-left px-4 py-2.5 text-[10px] font-semibold text-white/30 uppercase tracking-wider">Location</th>
+              <th className="w-10" />
+            </tr>
+          </thead>
+          <tbody>
+            {companies.map((c, i) => (
+              <tr key={i} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors group/row">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <CompanyLogo name={c.name} size="sm" />
+                    <div>
+                      <p className="text-[13px] font-semibold text-white/90 group-hover/row:text-white transition-colors">{c.name}</p>
+                      {c.description && <p className="text-[11px] text-white/30 truncate max-w-[180px]">{c.description}</p>}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-[11px] text-white/50">{c.stage}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-[11px] text-white/70 font-mono tabular-nums">
+                    {c.employees}
+                    {c.growth && (
+                      <span className="ml-1 text-emerald-400">▲ {c.growth}</span>
+                    )}
+                  </span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-[11px] text-white/60 font-mono">{c.funding}</span>
+                </td>
+                <td className="px-4 py-3">
+                  <span className="text-[11px] text-white/40">{c.location}</span>
+                </td>
+                <td className="px-2 py-3 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                  <button className="p-1 rounded text-white/30 hover:text-blue-400 hover:bg-white/5 transition-all">
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex items-center gap-2 px-4 py-2.5 border-t border-white/[0.04] bg-white/[0.01]">
+        <button className="text-[10px] text-white/40 hover:text-white/70 transition-colors font-medium">
+          Open in Discover Grid →
+        </button>
+        <span className="text-white/10">|</span>
+        <button className="text-[10px] text-white/40 hover:text-white/70 transition-colors font-medium">
+          Export Shortlist to CSV
+        </button>
+      </div>
     </div>
   );
 }
@@ -144,7 +286,6 @@ export default function Scout() {
   const workspaceScrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Subscribe to real-time report updates
   useEffect(() => {
     if (!user) return;
     const unsub = subscribeToFiles(user.uid, (files) => {
@@ -153,7 +294,6 @@ export default function Scout() {
     return unsub;
   }, [user]);
 
-  // Auto-switch to pipeline when running
   useEffect(() => {
     if (isRunning) setPanelTab("pipeline");
   }, [isRunning]);
@@ -237,7 +377,6 @@ export default function Scout() {
           setMessages((prev) => [...prev, agentMsg]);
           setSteps((prev) => prev.map((s) => ({ ...s, status: "complete" as StepStatus })));
 
-          // Auto-save for research mode
           if (currentMode === "research") {
             const file = await addFile(user!.uid, {
               title: currentQuery.slice(0, 60) + (currentQuery.length > 60 ? "…" : ""),
@@ -311,78 +450,128 @@ export default function Scout() {
   const hasConversation = messages.length > 0 || isRunning;
 
   return (
-    <div className="flex h-full relative">
-      {/* ── Main Chat Panel ── */}
+    <div className="flex h-full bg-[#121214] text-white">
+      {/* ── Chat History Rail (Left) ── */}
+      <div className="w-[260px] flex-shrink-0 bg-[#0A0A0C] border-r border-white/[0.06] flex flex-col">
+        {/* New session button */}
+        <div className="p-3">
+          <button
+            onClick={() => { setMessages([]); setLiveContent(""); setError(null); setSteps(defaultSteps); }}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-white/5 border border-white/[0.06] text-[12px] text-white/60 hover:text-white/90 hover:bg-white/[0.08] transition-all font-medium"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Scout Session
+          </button>
+        </div>
+
+        {/* Pinned */}
+        {PINNED_THREADS.length > 0 && (
+          <div className="px-3 pb-2">
+            <p className="text-[9px] font-semibold text-white/20 uppercase tracking-widest px-1 mb-1.5">Pinned</p>
+            {PINNED_THREADS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setQuery(t.query)}
+                className="w-full text-left px-2.5 py-1.5 rounded-md text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all group flex items-center gap-2"
+              >
+                <Pin className="w-3 h-3 text-white/20 group-hover:text-white/40 flex-shrink-0" />
+                <span className="truncate">{t.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Threads by time */}
+        <div className="flex-1 overflow-y-auto px-3">
+          {RECENT_THREADS.map((group) => (
+            <div key={group.group} className="mb-3">
+              <p className="text-[9px] font-semibold text-white/15 uppercase tracking-widest px-1 mb-1.5">{group.group}</p>
+              {group.threads.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setQuery(t.query)}
+                  className="w-full text-left px-2.5 py-1.5 rounded-md text-[11px] text-white/35 hover:text-white/60 hover:bg-white/[0.03] transition-all group"
+                >
+                  <p className="truncate font-medium">{t.label}</p>
+                  <p className="text-[10px] text-white/15 mt-0.5">{t.time}</p>
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Research library shortcut */}
+        <div className="px-3 pb-3 border-t border-white/[0.04] pt-2">
+          <button
+            onClick={() => { setWorkspaceOpen(true); setPanelTab("library"); }}
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[11px] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-all"
+          >
+            <Library className="w-3 h-3" />
+            Research Library
+            {reports.length > 0 && (
+              <span className="ml-auto text-[9px] font-bold text-blue-400">{reports.length}</span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Conversational Viewport (Center) ── */}
       <div className={cn(
-        "flex flex-col min-w-0 bg-gray-1000 transition-all duration-300",
-        workspaceOpen ? "flex-1 mr-[420px]" : "flex-1",
+        "flex flex-col flex-1 min-w-0 bg-[#121214] transition-all duration-300",
+        workspaceOpen ? "mr-[420px]" : "",
       )}>
         {/* Header bar */}
-        <div className="px-6 py-3.5 border-b border-gray-800/60 bg-gray-950/80 backdrop-blur-sm flex items-center justify-between">
+        <div className="px-6 py-3 border-b border-white/[0.04] bg-[#121214]/90 backdrop-blur-sm flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-500/20 to-violet-500/10 border border-accent-500/20 flex items-center justify-center">
-              <Crosshair className="w-4 h-4 text-accent-400" />
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
+              <Crosshair className="w-4 h-4 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-[15px] font-semibold text-gray-0 leading-tight">Scout</h2>
-              <p className="text-[11px] text-gray-500 font-medium">AI-powered startup research</p>
+              <h2 className="text-[15px] font-bold text-white leading-tight">Scout</h2>
+              <p className="text-[10px] text-white/30 font-medium">AI-powered startup intelligence</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {reports.length > 0 && (
-              <button
-                onClick={() => { setWorkspaceOpen(true); setPanelTab("library"); }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-200 hover:bg-gray-800/70 transition-all font-medium"
-              >
-                <Library className="w-3.5 h-3.5" />
-                Library
-                <span className="w-4 h-4 rounded-full bg-accent-500/20 border border-accent-500/30 text-[9px] font-bold text-accent-400 flex items-center justify-center">
-                  {reports.length}
-                </span>
-              </button>
-            )}
             {hasConversation && !workspaceOpen && (
               <button
                 onClick={() => setWorkspaceOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] text-gray-400 hover:text-gray-200 hover:bg-gray-800/70 transition-all font-medium"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all font-medium"
               >
-                <FileText className="w-3.5 h-3.5" />
+                <FileText className="w-3 h-3" />
                 Research panel
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-2.5 h-2.5" />
               </button>
             )}
           </div>
         </div>
 
         {/* Chat area */}
-        <div className="flex-1 overflow-y-auto">
-          {/* ── Empty State ── */}
+        <div className="flex-1 overflow-y-auto pb-48">
+          {/* Empty State */}
           {!hasConversation && (
             <div className="flex flex-col items-center justify-center h-full px-6 py-12">
-              <div className="text-center max-w-2xl mx-auto animate-fade-in">
+              <div className="text-center max-w-2xl mx-auto">
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-accent-500/15 via-violet-500/10 to-accent-500/5 border border-accent-500/15 flex items-center justify-center shadow-lg shadow-accent-500/5">
-                    <Crosshair className="w-9 h-9 text-accent-400" />
+                  <div className="w-20 h-20 mx-auto rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-center justify-center">
+                    <Crosshair className="w-9 h-9 text-blue-400" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/10 flex items-center justify-center">
                     <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                   </div>
                 </div>
 
-                <h1 className="text-2xl font-bold text-gray-0 mb-2 tracking-tight">
-                  Research any market,
-                </h1>
-                <p className="text-lg text-gray-400 leading-relaxed mb-1">
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">Research any market</h1>
+                <p className="text-[15px] text-white/40 leading-relaxed mb-1">
                   discover startups, and surface investment opportunities
                 </p>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-[12px] text-white/20 leading-relaxed">
                   Scout orchestrates specialized AI agents to research, analyze, and synthesize insights from across the startup ecosystem.
                 </p>
               </div>
 
               {/* Suggestion cards */}
-              <div className="mt-10 w-full max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center">
+              <div className="mt-10 w-full max-w-2xl mx-auto" style={{ animationDelay: "0.1s" }}>
+                <p className="text-[10px] font-semibold text-white/20 uppercase tracking-wider mb-3 text-center">
                   Try asking about
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -391,23 +580,16 @@ export default function Scout() {
                     return (
                       <button
                         key={i}
-                        onClick={() => {
-                          setQuery(s.query);
-                          inputRef.current?.focus();
-                        }}
-                        className="group relative text-left p-4 rounded-xl border border-gray-800/60 bg-gray-900/40 hover:bg-gray-900/80 hover:border-gray-700/60 transition-all duration-200 overflow-hidden"
+                        onClick={() => { setQuery(s.query); inputRef.current?.focus(); }}
+                        className="group relative text-left p-4 rounded-xl border border-white/[0.04] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-200"
                       >
-                        <div className={cn(
-                          "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br",
-                          s.gradient,
-                        )} />
-                        <div className="relative z-10 flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
-                            <Icon className="w-3.5 h-3.5 text-accent-400" />
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-3.5 h-3.5 text-blue-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[13px] font-semibold text-gray-200 mb-0.5">{s.title}</p>
-                            <p className="text-[12px] text-gray-500 leading-relaxed line-clamp-2">{s.query}</p>
+                            <p className="text-[13px] font-semibold text-white/80 mb-0.5">{s.title}</p>
+                            <p className="text-[11px] text-white/30 leading-relaxed line-clamp-2">{s.query}</p>
                           </div>
                         </div>
                       </button>
@@ -415,168 +597,144 @@ export default function Scout() {
                   })}
                 </div>
               </div>
-
-              {/* Quick input (centered) */}
-              <div className="mt-10 w-full max-w-xl mx-auto animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                <div className="flex items-center justify-center mb-2">
-                  <ModeToggle mode={mode} onChange={setMode} />
-                </div>
-                <div className="relative">
-                  <input
-                    ref={inputRef}
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleRun()}
-                    placeholder={mode === "research"
-                      ? "Ask for a full research report..."
-                      : "Ask Scout anything about startups, markets, or trends..."}
-                    className="w-full pl-5 pr-14 py-3.5 bg-gray-900/60 border border-gray-800/60 rounded-2xl text-[14px] text-gray-0 placeholder:text-gray-600 focus:outline-none focus:border-accent-500/40 focus:bg-gray-900/90 transition-all duration-200 shadow-sm"
-                  />
-                  <button
-                    onClick={handleRun}
-                    disabled={!query.trim()}
-                    className={cn(
-                      "absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
-                      query.trim()
-                        ? "bg-white text-gray-0 hover:bg-gray-100 hover:scale-[1.04] active:scale-[0.97]"
-                        : "bg-gray-800 text-gray-600",
-                    )}
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
-          {/* ── Conversation ── */}
+          {/* Messages */}
           {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={cn(
-                "px-6 py-5 transition-colors duration-150",
-                msg.role === "agent" ? "bg-gray-950/30" : "",
-              )}
-            >
-              <div className="max-w-[720px] mx-auto flex items-start gap-4">
-                <div className={cn(
-                  "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
-                  msg.role === "user"
-                    ? "bg-gradient-to-br from-accent-500/20 to-accent-500/10 border border-accent-500/20"
-                    : "bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 border border-emerald-500/20",
-                )}>
-                  {msg.role === "user"
-                    ? <User className="w-3.5 h-3.5 text-accent-400" />
-                    : <Bot className="w-3.5 h-3.5 text-emerald-400" />
-                  }
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={cn(
-                      "text-[12px] font-semibold",
-                      msg.role === "user" ? "text-gray-400" : "text-emerald-400",
-                    )}>
-                      {msg.role === "user" ? "You" : "Scout"}
-                    </span>
-                    <span className="text-[11px] text-gray-600">
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-
-                  <div className="text-[14px] text-gray-300 leading-[1.7] whitespace-pre-wrap">
-                    {msg.content}
-                  </div>
-
-                  {/* Agent action bar */}
-                  {msg.role === "agent" && (
-                    <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-800/50">
-                      {msg.savedToWorkspace ? (
-                        <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Saved to library
-                        </span>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => handleCreateReport(msg)}
-                            disabled={reportSubmitting}
-                            className={cn(
-                              "text-[11px] font-medium flex items-center gap-1.5 transition-colors px-2.5 py-1 rounded-md border",
-                              reportSubmitting
-                                ? "text-gray-600 border-gray-800 cursor-not-allowed"
-                                : "text-accent-400 border-accent-500/20 bg-accent-500/5 hover:bg-accent-500/10 hover:border-accent-500/30",
-                            )}
-                          >
-                            {reportSubmitting ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <FileSpreadsheet className="w-3 h-3" />
-                            )}
-                            Create Research Report
-                          </button>
-                          <button
-                            onClick={() => navigator.clipboard.writeText(msg.content)}
-                            className="text-[11px] text-gray-500 hover:text-gray-400 font-medium flex items-center gap-1.5 transition-colors"
-                          >
-                            <Copy className="w-3 h-3" />
-                            Copy
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={() => setWorkspaceOpen(!workspaceOpen)}
-                        className="text-[11px] text-gray-500 hover:text-gray-400 font-medium flex items-center gap-1.5 transition-colors ml-auto"
-                      >
-                        <FileText className="w-3 h-3" />
-                        Research panel
-                      </button>
+            <div key={msg.id} className={cn("px-6 py-6 transition-colors duration-150", msg.role === "agent" ? "" : "bg-white/[0.005]")}>
+              <div className="max-w-[720px] mx-auto">
+                {/* Agent message: left-aligned */}
+                {msg.role === "agent" && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bot className="w-3.5 h-3.5 text-emerald-400" />
                     </div>
-                  )}
-                </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[11px] font-semibold text-emerald-400">Scout</span>
+                        <span className="text-[10px] text-white/20">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+
+                      {/* Message content — check if it contains structured data */}
+                      <div className="text-[13px] text-white/70 leading-[1.7] whitespace-pre-wrap">
+                        {msg.content}
+                      </div>
+
+                      {/* Show inline data grid for messages that look like company listings */}
+                      {msg.content.includes("## Research Results") && (
+                        <InlineCompanyGrid
+                          companies={[
+                            { name: "Neural Labs", stage: "Seed", employees: 24, growth: "15%", funding: "$10M", location: "San Francisco, CA", description: "AI infrastructure for scientific discovery" },
+                            { name: "RoboSynth", stage: "Series A", employees: 56, growth: "32%", funding: "$32M", location: "Boston, MA", description: "Robotics foundation models" },
+                            { name: "Synthex Bio", stage: "Series A", employees: 72, growth: "18%", funding: "$45M", location: "Cambridge, MA", description: "AI-designed protein therapies" },
+                            { name: "Solara Climate", stage: "Series B", employees: 94, funding: "$85M", location: "Oakland, CA", description: "Direct air capture" },
+                          ]}
+                        />
+                      )}
+
+                      {/* Action bar */}
+                      <div className="flex items-center gap-3 mt-4 pt-3 border-t border-white/[0.04]">
+                        {msg.savedToWorkspace ? (
+                          <span className="text-[10px] text-emerald-400/80 font-medium flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Saved to library
+                          </span>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleCreateReport(msg)}
+                              disabled={reportSubmitting}
+                              className={cn(
+                                "text-[10px] font-medium flex items-center gap-1.5 transition-all px-2.5 py-1 rounded-full border",
+                                reportSubmitting
+                                  ? "text-white/20 border-white/[0.04] cursor-not-allowed"
+                                  : "text-blue-400 border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/10 hover:border-blue-500/30",
+                              )}
+                            >
+                              {reportSubmitting ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <FileSpreadsheet className="w-3 h-3" />
+                              )}
+                              Create Research Report
+                            </button>
+                            <button
+                              onClick={() => navigator.clipboard.writeText(msg.content)}
+                              className="text-[10px] text-white/30 hover:text-white/50 font-medium flex items-center gap-1.5 transition-colors"
+                            >
+                              <Copy className="w-3 h-3" />
+                              Copy
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* User message: right-aligned */}
+                {msg.role === "user" && (
+                  <div className="flex items-start gap-3 justify-end">
+                    <div className="min-w-0 max-w-[80%]">
+                      <div className="flex items-center gap-2 mb-1.5 justify-end">
+                        <span className="text-[10px] text-white/20">
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                        <span className="text-[11px] font-semibold text-white/50">You</span>
+                      </div>
+                      <div className="text-[13px] text-white/80 leading-[1.6] bg-white/[0.03] border border-white/[0.04] rounded-2xl rounded-br-md px-4 py-3">
+                        {msg.content}
+                      </div>
+                    </div>
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <User className="w-3.5 h-3.5 text-blue-400" />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
 
-          {/* ── Streaming Response ── */}
+          {/* Streaming Response */}
           {isRunning && (
-            <div className="px-6 py-5 bg-gray-950/30">
-              <div className="max-w-[720px] mx-auto flex items-start gap-4">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 relative">
-                  <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
-                </div>
+            <div className="px-6 py-6">
+              <div className="max-w-[720px] mx-auto">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Loader2 className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[11px] font-semibold text-emerald-400">Scout</span>
+                    </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[12px] font-semibold text-emerald-400">Scout</span>
+                    <ThinkingState steps={steps} liveContent={liveContent} />
+
                     {liveContent ? (
-                      <span className="text-[11px] text-emerald-400/60 animate-pulse">generating…</span>
+                      <div className="text-[13px] text-white/70 leading-[1.7] whitespace-pre-wrap">
+                        {liveContent}
+                        <span className="inline-block w-1.5 h-4 bg-emerald-400/80 ml-0.5 align-middle animate-pulse rounded-sm" />
+                      </div>
                     ) : (
-                      <DotPulse />
+                      <div className="text-[12px] text-white/20">Initializing research pipeline…</div>
                     )}
                   </div>
-
-                  {liveContent ? (
-                    <div className="text-[14px] text-gray-300 leading-[1.7] whitespace-pre-wrap">
-                      {liveContent}
-                      <span className="inline-block w-1.5 h-4 bg-emerald-400/80 ml-0.5 align-middle animate-pulse rounded-sm" />
-                    </div>
-                  ) : (
-                    <div className="text-[13px] text-gray-500 italic">Analyzing your query…</div>
-                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── Error ── */}
+          {/* Error */}
           {error && (
             <div className="px-6 py-4">
-              <div className="max-w-[720px] mx-auto bg-red-500/5 border border-red-500/15 rounded-xl p-4">
-                <p className="text-[13px] text-red-400 font-medium">{error}</p>
-                <p className="text-[12px] text-gray-600 mt-1.5">
+              <div className="max-w-[720px] mx-auto bg-red-500/5 border border-red-500/10 rounded-xl p-4">
+                <p className="text-[12px] text-red-400/80 font-medium">{error}</p>
+                <p className="text-[11px] text-white/20 mt-1.5">
                   Ensure the backend is running:{" "}
-                  <code className="text-accent-400 bg-gray-900 px-1.5 py-0.5 rounded text-[11px]">
+                  <code className="text-blue-400 bg-white/5 px-1.5 py-0.5 rounded text-[10px]">
                     cd backend && uvicorn app.main:app --reload
                   </code>
                 </p>
@@ -586,94 +744,111 @@ export default function Scout() {
 
           <div ref={chatEndRef} />
         </div>
-
-        {/* ── Input Bar (only after conversation starts) ── */}
-        {hasConversation && (
-        <div className="p-4 border-t border-gray-800/60 bg-gray-950/80 backdrop-blur-sm">
-          <div className="max-w-[720px] mx-auto">
-            <div className="relative group/input">
-              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-accent-500/30 via-violet-500/20 to-accent-500/30 opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300 blur-sm" />
-
-              <div className="relative flex items-center gap-2 bg-gray-900/80 border border-gray-800/60 rounded-2xl px-4 py-2.5 focus-within:border-accent-500/40 focus-within:bg-gray-900 transition-all duration-200 shadow-sm">
-                <input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleRun()}
-                  placeholder={mode === "research" ? "Ask a follow-up for the report…" : "Ask a follow-up…"}
-                  className="flex-1 bg-transparent text-[14px] text-gray-0 placeholder:text-gray-600 focus:outline-none py-1"
-                  disabled={isRunning}
-                />
-                <ModeToggle mode={mode} onChange={setMode} />
-                <button
-                  onClick={handleRun}
-                  disabled={!query.trim() || isRunning}
-                  className={cn(
-                    "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0",
-                    query.trim() && !isRunning
-                      ? "bg-white text-gray-0 hover:bg-gray-100 hover:scale-[1.04] active:scale-[0.97]"
-                      : "bg-gray-800 text-gray-600",
-                  )}
-                >
-                  {isRunning ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <ArrowUp className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            {hasConversation && (
-              <p className="text-[10px] text-gray-600 mt-2 text-center">
-                Scout may produce inaccurate information. Verify important details independently.
-              </p>
-            )}
-          </div>
-        </div>
-        )}
       </div>
 
-      {/* ── Research Hub (slide-over) ── */}
+      {/* ── Prompt Command Deck (Bottom Fixed) ── */}
       <div className={cn(
-        "absolute right-0 top-0 bottom-0 w-[420px] bg-gray-950 border-l border-gray-800/60 flex flex-col transition-transform duration-300 ease-out z-10",
-        workspaceOpen ? "translate-x-0" : "translate-x-full",
+        "absolute bottom-0 left-[260px] right-0 z-20 pb-6 pt-4 px-6",
+        workspaceOpen ? "right-[420px]" : "",
+      )}>
+        <div className="max-w-3xl mx-auto">
+          <div className={cn(
+            "relative bg-[#1a1a1c]/80 backdrop-blur-xl border rounded-2xl p-3 transition-all duration-300",
+            "border-white/[0.06] shadow-[0_8px_32px_rgba(0,0,0,0.4)]",
+            "focus-within:border-white/[0.12] focus-within:shadow-[0_0_24px_rgba(59,130,246,0.08)]",
+          )}>
+            {/* Mode toggle */}
+            <div className="flex items-center justify-between mb-2.5 px-1">
+              <ModeTogglePill mode={mode} onChange={setMode} />
+              <span className="text-[9px] text-white/15 font-medium">
+                {mode === "research" ? "Deep report mode" : "Quick answer mode"}
+              </span>
+            </div>
+
+            {/* Input row */}
+            <div className="flex items-center gap-2">
+              <input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleRun()}
+                placeholder={mode === "research"
+                  ? "Ask for a deep research report on a company or market..."
+                  : hasConversation ? "Ask a follow-up…" : "Ask Scout to research anything…"}
+                className="flex-1 bg-transparent text-[14px] text-white placeholder:text-white/20 focus:outline-none py-1.5"
+                disabled={isRunning}
+                autoFocus
+              />
+              <button
+                onClick={handleRun}
+                disabled={!query.trim() || isRunning}
+                className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0",
+                  query.trim() && !isRunning
+                    ? "bg-white text-[#121214] hover:bg-white/90 hover:scale-[1.04] active:scale-[0.97]"
+                    : "bg-white/[0.04] text-white/20",
+                )}
+              >
+                {isRunning ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ArrowUp className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {hasConversation && (
+            <p className="text-[9px] text-white/15 mt-2 text-center">
+              Scout may produce inaccurate information. Verify important details independently.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Research Hub (Slide-over) ── */}
+      <div className={cn(
+        "absolute right-0 top-0 bottom-0 w-[420px] bg-[#0A0A0C] border-l border-white/[0.06] flex flex-col z-10",
+        "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "shadow-[-24px_0_48px_rgba(0,0,0,0.5)]",
+        workspaceOpen ? "translate-x-0 opacity-100" : "translate-x-full opacity-0",
       )}>
         {/* Panel header */}
-        <div className="px-5 py-3.5 border-b border-gray-800/60 flex items-center justify-between">
+        <div className="px-5 py-3.5 border-b border-white/[0.04] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
-              <FileText className="w-3.5 h-3.5 text-accent-400" />
+            <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/15 flex items-center justify-center">
+              <FileText className="w-3.5 h-3.5 text-blue-400" />
             </div>
             <div>
-              <span className="text-[13px] font-semibold text-gray-200">Research Hub</span>
-              {(isRunning) && (
+              <span className="text-[13px] font-semibold text-white/90">Research Hub</span>
+              {isRunning && (
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse ml-2 align-middle" />
               )}
             </div>
           </div>
           <button
             onClick={() => setWorkspaceOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-gray-800/70 text-gray-500 hover:text-gray-300 transition-all"
+            className="p-1.5 rounded-lg hover:bg-white/[0.04] text-white/30 hover:text-white/60 transition-all"
           >
             <PanelRightClose className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab toggle */}
-        <div className="px-4 py-2 border-b border-gray-800/40 flex items-center gap-1">
+        <div className="px-4 py-2 border-b border-white/[0.04] flex items-center gap-1">
           <button
             onClick={() => { setPanelTab("library"); setSelectedReport(null); }}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all",
               panelTab === "library"
-                ? "bg-gray-800 text-gray-200"
-                : "text-gray-500 hover:text-gray-300",
+                ? "bg-white/[0.06] text-white/80"
+                : "text-white/30 hover:text-white/50",
             )}
           >
             <Library className="w-3 h-3" />
             Report Library
             {reports.length > 0 && (
-              <span className="text-[9px] font-bold text-accent-400">({reports.length})</span>
+              <span className="text-[9px] font-bold text-blue-400">({reports.length})</span>
             )}
           </button>
           <button
@@ -681,8 +856,8 @@ export default function Scout() {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium transition-all",
               panelTab === "pipeline"
-                ? "bg-gray-800 text-gray-200"
-                : "text-gray-500 hover:text-gray-300",
+                ? "bg-white/[0.06] text-white/80"
+                : "text-white/30 hover:text-white/50",
             )}
           >
             <FileText className="w-3 h-3" />
@@ -693,58 +868,37 @@ export default function Scout() {
           </button>
         </div>
 
-        {/* Panel content */}
+        {/* Panel content — simplified (keeping existing functionality) */}
         <div className="flex-1 overflow-y-auto" ref={workspaceScrollRef}>
-          {/* ── Report Detail View ── */}
           {selectedReport && panelTab === "library" && (
             <div className="p-5">
-              {/* Breadcrumb */}
               <button
                 onClick={() => setSelectedReport(null)}
-                className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300 transition-colors mb-4"
+                className="flex items-center gap-1.5 text-[11px] text-white/30 hover:text-white/60 transition-colors mb-4"
               >
-                <ArrowLeft className="w-3 h-3" />
-                Library
+                <ArrowLeft className="w-3 h-3" /> Library
               </button>
 
-              {/* Report header */}
-              <div className="mb-4">
-                <h3 className="text-[15px] font-semibold text-gray-200 leading-snug mb-1">
-                  {selectedReport.title}
-                </h3>
-                <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                  <Clock className="w-3 h-3" />
-                  {new Date(selectedReport.createdAt).toLocaleDateString([], {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                  <span>·</span>
-                  <Badge variant="info" size="sm">Research Report</Badge>
-                </div>
+              <h3 className="text-[15px] font-semibold text-white/90 leading-snug mb-1">{selectedReport.title}</h3>
+              <div className="flex items-center gap-2 text-[10px] text-white/30 mb-4">
+                <Clock className="w-3 h-3" />
+                {new Date(selectedReport.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
               </div>
 
-              {/* Source query breadcrumb */}
               {selectedReport.sourceQuery && (
-                <div className="bg-gray-950/80 border border-gray-800/60 rounded-lg p-3 mb-5">
-                  <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                    Source Query
-                  </p>
-                  <p className="text-[12px] text-gray-400 leading-relaxed italic">
-                    "{selectedReport.sourceQuery}"
-                  </p>
+                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-3 mb-5">
+                  <p className="text-[9px] font-semibold text-white/20 uppercase tracking-wider mb-1">Source Query</p>
+                  <p className="text-[11px] text-white/40 leading-relaxed italic">"{selectedReport.sourceQuery}"</p>
                 </div>
               )}
 
-              {/* Report content */}
-              <div className="bg-gray-950/80 border border-gray-800/60 rounded-xl p-4 text-[13px] text-gray-300 whitespace-pre-wrap leading-relaxed">
+              <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-[12px] text-white/60 whitespace-pre-wrap leading-relaxed">
                 {selectedReport.content}
               </div>
 
-              {/* Follow up button */}
               <button
                 onClick={() => handleFollowUp(selectedReport)}
-                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-accent-500/10 border border-accent-500/20 text-[13px] text-accent-400 font-medium hover:bg-accent-500/15 hover:border-accent-500/30 transition-all"
+                className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[12px] text-blue-400 font-medium hover:bg-blue-500/15 transition-all"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
                 Follow up with Scout
@@ -752,174 +906,77 @@ export default function Scout() {
             </div>
           )}
 
-          {/* ── Report Library ── */}
           {panelTab === "library" && !selectedReport && (
-            <>
+            <div className="divide-y divide-white/[0.03]">
               {reports.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center mb-5">
-                    <Library className="w-7 h-7 text-gray-600" />
+                <div className="flex flex-col items-center justify-center h-full text-center px-8 py-20">
+                  <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-5">
+                    <Library className="w-7 h-7 text-white/10" />
                   </div>
-                  <h3 className="text-[14px] font-semibold text-gray-400 mb-1.5">Report Library</h3>
-                  <p className="text-[12px] text-gray-600 leading-relaxed max-w-[260px]">
-                    Ask Scout in <strong>Report</strong> mode or click <strong>Create Research Report</strong> on any chat response to save reports here.
+                  <h3 className="text-[14px] font-semibold text-white/30 mb-1.5">Report Library</h3>
+                  <p className="text-[11px] text-white/15 leading-relaxed max-w-[260px]">
+                    Use <strong className="text-white/30">Deep Report</strong> mode or click <strong className="text-white/30">Create Research Report</strong> on any Scout response.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-800/40">
-                  {reports.map((report) => (
-                    <button
-                      key={report.id}
-                      onClick={() => setSelectedReport(report)}
-                      className="w-full text-left px-5 py-4 hover:bg-accent-500/3 transition-colors group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-accent-500/10 border border-accent-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <FileText className="w-3.5 h-3.5 text-accent-400" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-medium text-gray-200 group-hover:text-gray-0 transition-colors truncate">
-                            {report.title}
-                          </p>
-                          {report.sourceQuery && (
-                            <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1 italic">
-                              "{report.sourceQuery}"
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="info" size="sm">Research Report</Badge>
-                            <span className="text-[10px] text-gray-600">
-                              {new Date(report.createdAt).toLocaleDateString([], {
-                                month: "short",
-                                day: "numeric",
-                              })}
-                            </span>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors flex-shrink-0 mt-1" />
+                reports.map((report) => (
+                  <button
+                    key={report.id}
+                    onClick={() => setSelectedReport(report)}
+                    className="w-full text-left px-5 py-4 hover:bg-white/[0.02] transition-colors group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/5 border border-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <FileText className="w-3.5 h-3.5 text-blue-400/60" />
                       </div>
-                    </button>
-                  ))}
-                </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-medium text-white/70 group-hover:text-white/90 transition-colors truncate">{report.title}</p>
+                        {report.sourceQuery && (
+                          <p className="text-[10px] text-white/20 mt-0.5 line-clamp-1 italic">"{report.sourceQuery}"</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[9px] text-white/20">
+                            {new Date(report.createdAt).toLocaleDateString([], { month: "short", day: "numeric" })}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-white/30 transition-colors flex-shrink-0 mt-1" />
+                    </div>
+                  </button>
+                ))
               )}
-            </>
+            </div>
           )}
 
-          {/* ── Live Pipeline ── */}
           {panelTab === "pipeline" && (
-            <>
+            <div className="p-5">
               {!isRunning && !liveContent && messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center px-8">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-900 border border-gray-800 flex items-center justify-center mb-5">
-                    <FileText className="w-7 h-7 text-gray-600" />
+                <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                  <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/[0.04] flex items-center justify-center mb-5">
+                    <FileText className="w-7 h-7 text-white/10" />
                   </div>
-                  <h3 className="text-[14px] font-semibold text-gray-400 mb-1.5">Live Pipeline</h3>
-                  <p className="text-[12px] text-gray-600 leading-relaxed max-w-[260px]">
-                    Ask Scout a question to see the agent pipeline and live document appear here in real time.
+                  <p className="text-[13px] text-white/30">Live Pipeline</p>
+                  <p className="text-[11px] text-white/15 mt-1 max-w-[220px]">
+                    Ask Scout to see the agent pipeline and live document in real time.
                   </p>
                 </div>
               ) : (
                 <>
-                  {/* Agent Pipeline */}
-                  {(isRunning || liveContent) && (
-                    <div className="p-5 border-b border-gray-800/40">
-                      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                        Agent Pipeline
-                      </p>
-                      <div className="relative">
-                        <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gray-800" />
-                        <div className="space-y-3">
-                          {steps.map((step) => (
-                            <div key={step.id} className="relative flex items-start gap-3 pl-7">
-                              <div className={cn(
-                                "absolute left-[5px] top-0.5 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-all duration-300",
-                                step.status === "complete" && "bg-emerald-500/20 border-emerald-500",
-                                step.status === "running" && "bg-accent-500/20 border-accent-500",
-                                step.status === "pending" && "bg-transparent border-gray-700",
-                              )}>
-                                {step.status === "complete" && (
-                                  <CheckCircle2 className="w-2 h-2 text-emerald-400" />
-                                )}
-                                {step.status === "running" && (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-accent-400 animate-pulse" />
-                                )}
-                              </div>
-                              <step.icon className={cn(
-                                "w-3.5 h-3.5 flex-shrink-0 mt-0.5 transition-colors duration-300",
-                                step.status === "complete" && "text-emerald-400",
-                                step.status === "running" && "text-accent-400",
-                                step.status === "pending" && "text-gray-600",
-                              )} />
-                              <div className="min-w-0">
-                                <p className={cn(
-                                  "text-[12px] leading-snug transition-colors duration-300",
-                                  step.status === "running" && "text-accent-300 font-medium",
-                                  step.status === "complete" && "text-gray-400",
-                                  step.status === "pending" && "text-gray-600",
-                                )}>
-                                  {step.label}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Live Document */}
-                  {(isRunning || liveContent) && (
-                    <div className="p-5">
-                      <div className="flex items-center gap-2.5 mb-3">
-                        <div className="w-6 h-6 rounded-md bg-accent-500/10 border border-accent-500/15 flex items-center justify-center">
-                          <FileText className="w-3 h-3 text-accent-400" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[12px] font-medium text-gray-200 truncate">
-                            {messages[messages.length - 1]?.role === "user"
-                              ? messages[messages.length - 1]?.content.slice(0, 55) ?? "Research"
-                              : "Research Report"}
-                          </p>
-                          <p className="text-[10px] text-gray-500">
-                            {isRunning ? "Writing…" : "Complete"}
-                          </p>
-                        </div>
-                        {savedFileId && (
-                          <Badge variant="success" size="sm">Saved</Badge>
-                        )}
-                      </div>
-
-                      <div className="bg-gray-950/80 border border-gray-800/60 rounded-xl p-4 text-[13px] text-gray-300 whitespace-pre-wrap leading-relaxed min-h-[200px] max-h-[calc(100vh-400px)] overflow-y-auto">
-                        {liveContent || (
-                          <span className="text-gray-600 italic">Waiting for agent output…</span>
-                        )}
-                        {isRunning && (
-                          <span className="inline-block w-2 h-4 bg-accent-400 ml-0.5 align-middle animate-pulse rounded-sm" />
-                        )}
-                      </div>
+                  <ThinkingState steps={steps} liveContent={liveContent} />
+                  {liveContent && (
+                    <div className="bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 text-[12px] text-white/50 whitespace-pre-wrap leading-relaxed mt-4 max-h-[calc(100vh-280px)] overflow-y-auto">
+                      {liveContent}
+                      {isRunning && (
+                        <span className="inline-block w-2 h-4 bg-blue-400 ml-0.5 align-middle animate-pulse rounded-sm" />
+                      )}
                     </div>
                   )}
                 </>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-/** Animated dot pulse for "thinking" state */
-function DotPulse() {
-  return (
-    <div className="flex items-center gap-1">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="w-1.5 h-1.5 rounded-full bg-emerald-400/50 animate-bounce"
-          style={{ animationDelay: `${i * 150}ms`, animationDuration: "0.8s" }}
-        />
-      ))}
     </div>
   );
 }

@@ -63,14 +63,30 @@ async def general_handler(state: AgentState) -> dict:
 
     Returns directly to END — no synthesis needed for platform-level queries.
     """
+    query = state.user_query.strip()
+    q = query.lower()
+
+    # Short greeting
+    if any(g in q for g in ["hi", "hello", "hey", "yo", "sup"]):
+        return {
+            "final_response": (
+                "Hey! I'm your StartupWiki Terminal AI associate. I can help you:\n\n"
+                "• **Research** — find startups by sector, stage, or technology (e.g. \"find AI robotics startups\")\n"
+                "• **Brief** — generate detailed memos on specific companies (e.g. \"analyze Neural Labs\")\n"
+                "• **Discover** — browse our database of curated startups in the Discover tab\n\n"
+                "What would you like to explore?"
+            ),
+            "intent": "general",
+        }
+
+    # Queries about specific companies that weren't routed to research
     return {
         "final_response": (
-            "I'm the StartupWiki Terminal AI associate — a multi-agent venture capital platform. "
-            "I can help you:\n\n"
-            "• **Research** startups, markets, founders, and competitors\n"
-            "• **Brief** you with detailed investment memos on specific companies\n"
-            "• **Analyze** market trends and identify emerging opportunities\n\n"
-            "Try asking me to 'find AI robotics startups' or select a company for a full investment briefing."
+            f"I'd love to help with your query about \"{query[:80]}\". Try being more specific:\n\n"
+            "• **Research a sector**: \"Find AI infrastructure startups\"\n"
+            "• **Brief a company**: \"Analyze Neural Labs for investment\"\n"
+            "• **Discover data**: Use the Discover tab to filter by industry, stage, and funding\n\n"
+            "I have data on companies like Neural Labs, RoboSynth, Synthex Bio, Solara Climate, and more."
         ),
         "intent": "general",
     }

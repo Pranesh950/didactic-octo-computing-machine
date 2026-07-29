@@ -47,22 +47,30 @@ async def manager_router(state: AgentState) -> dict:
     query = state.user_query
     company_id = state.company_id
 
-    messages = [
-        SystemMessage(content=ROUTER_SYSTEM_PROMPT),
-        HumanMessage(content=f"User query: {query}\nCompany context ID: {company_id or 'none'}"),
-    ]
+    # Try LLM-based intent classification first
+    intent = None
+    model = "keyword"
 
-    intent_raw, model = await invoke_with_fallback(messages)
-    intent_raw = intent_raw.strip().lower()
+    try:
+        messages = [
+            SystemMessage(content=ROUTER_SYSTEM_PROMPT),
+            HumanMessage(content=f"User query: {query}\nCompany context ID: {company_id or 'none'}"),
+        ]
+        intent_raw, model = await invoke_with_fallback(messages)
+        intent_raw = intent_raw.strip().lower()
 
-    if "briefing" in intent_raw and company_id:
-        intent = "briefing"
-    elif "briefing" in intent_raw:
-        intent = "briefing"
-    elif "research" in intent_raw:
-        intent = "research"
-    else:
-        intent = "general"
+        if "briefing" in intent_raw:
+            intent = "briefing"
+        elif "research" in intent_raw:
+            intent = "research"
+        else:
+            intent = "general"
+    except Exception as e:
+        logger.warning("LLM intent classification failed, using keyword fallback: %s", e)
+
+    # Keyword-based fallback if LLM failed or returned unclear result
+    if intent is None or intent == "general":
+        intent = _keyword_intent(query, company_id)
 
     logger.info("Manager routed to intent=%s (model=%s)", intent, model)
 
@@ -71,6 +79,38 @@ async def manager_router(state: AgentState) -> dict:
         "model_used": model,
         "messages": [{"role": "manager", "content": f"Routed to {intent}"}],
     }
+
+
+def _keyword_intent(query: str, company_id: str | None) -> str:
+    """Simple keyword-based intent detection as fallback."""
+    q = query.lower()
+
+    # If viewing a specific company page, it's briefing
+    if company_id:
+        return "briefing"
+
+    # briefing keywords — user asking about a specific company
+    briefing_keywords = [
+        "briefing", "brief me on", "memo", "report on", " report",
+        "deep dive", "profile of", "analyze ", "analysis of",
+        "company report", "investment memo", "tell me about",
+    ]
+    if any(kw in q for kw in briefing_keywords):
+        return "briefing"
+
+    # research keywords — user searching/discovering
+    research_keywords = [
+        "find", "search", "discover", "list", "show me",
+        "startups", "companies", "market", "landscape",
+        "sector", "industry", "trends", "competitors",
+        "compare", "looking for", "opportunities",
+        "ai", "robotics", "biotech", "climate", "fintech",
+        "who is", "what is", "what are",
+    ]
+    if any(kw in q for kw in research_keywords):
+        return "research"
+
+    return "general"
 
 
 async def manager_synthesize(state: AgentState) -> dict:
@@ -101,7 +141,11 @@ async def manager_synthesize(state: AgentState) -> dict:
         HumanMessage(content=f"Synthesize these findings into a unified response:\n\n{combined}"),
     ]
 
-    synthesis, model = await invoke_with_fallback(messages)
+    try:
+        synthesis, model = await invoke_with_fallback(messages)
+    except Exception:
+        # LLM down — return the combined raw results
+        return {"final_response": combined}
 
     return {
         "final_response": synthesis,
