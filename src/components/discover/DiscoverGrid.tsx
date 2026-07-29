@@ -146,7 +146,7 @@ function TableView({ data, sort, onSort, onSelectCompany }: Props) {
                       e.stopPropagation();
                       onSelectCompany(company);
                     }}
-                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-500 hover:bg-accent-50 transition-all"
+                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-400 hover:bg-accent-500/10 transition-all"
                     title="Quick view"
                   >
                     <Eye className="w-3.5 h-3.5" />
@@ -156,7 +156,7 @@ function TableView({ data, sort, onSort, onSelectCompany }: Props) {
                       e.stopPropagation();
                       // Bookmark — coming soon
                     }}
-                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-500 hover:bg-accent-50 transition-all"
+                    className="p-1.5 rounded-md text-gray-400 hover:text-accent-400 hover:bg-accent-500/10 transition-all"
                     title="Bookmark"
                   >
                     <Bookmark className="w-3.5 h-3.5" />

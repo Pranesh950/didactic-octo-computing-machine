@@ -220,7 +220,7 @@ function AnimatedBackground() {
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
         }}
       />
@@ -303,7 +303,7 @@ export default function Landing() {
               <div className="w-8 h-8 rounded-lg bg-accent-500/20 border border-accent-500/30 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-accent-400" />
               </div>
-              <span className="text-sm font-semibold text-gray-0 font-mono">StartupWiki</span>
+              <span className="text-sm font-semibold text-white font-mono">StartupWiki</span>
             </div>
 
             {/* Desktop nav */}
@@ -319,7 +319,7 @@ export default function Landing() {
               </button>
               <button
                 onClick={handleSignIn}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-0 rounded-lg text-[13px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] font-mono"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-900 rounded-lg text-[13px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] font-mono"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in
@@ -351,7 +351,7 @@ export default function Landing() {
               </button>
               <button
                 onClick={handleSignIn}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-0 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors font-mono mt-2"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-gray-900 rounded-lg text-sm font-semibold hover:bg-gray-100 transition-colors font-mono mt-2"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign in with Google
@@ -371,7 +371,7 @@ export default function Landing() {
           </div>
 
           {/* Headline */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-0 leading-[1.1] tracking-tight mb-5 animate-slide-up">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-5 animate-slide-up">
             AI-Powered{" "}
             <span className="bg-gradient-to-r from-accent-300 via-accent-400 to-violet-400 bg-clip-text text-transparent">
               Venture Capital
@@ -389,7 +389,7 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <button
               onClick={handleSignIn}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white text-gray-0 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/5 font-mono w-full sm:w-auto justify-center"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white text-gray-900 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/5 font-mono w-full sm:w-auto justify-center"
             >
               <LogIn className="w-4 h-4" />
               Sign in with Google
@@ -410,7 +410,7 @@ export default function Landing() {
               const Icon = stat.icon;
               return (
                 <div key={stat.label} className="text-center animate-slide-up" style={{ animationDelay: "0.3s" }}>
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-0 font-mono">{stat.value}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white font-mono">{stat.value}</div>
                   <div className="text-[11px] text-gray-500 mt-1 font-mono flex items-center justify-center gap-1">
                     <Icon className="w-3 h-3" />
                     {stat.label}
@@ -426,7 +426,7 @@ export default function Landing() {
       <section id="terminal" className="relative px-4 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-0 mb-3 font-mono">See it in action</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 font-mono">See it in action</h2>
             <p className="text-sm text-gray-500 font-mono">
               One query generates a complete investment briefing — team analysis, market positioning, and AI-driven insights.
             </p>
@@ -446,7 +446,7 @@ export default function Landing() {
               <Star className="w-3 h-3" />
               Everything you need
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-0 mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
               Your personal{" "}
               <span className="bg-gradient-to-r from-accent-300 to-violet-400 bg-clip-text text-transparent">
                 VC analyst team
@@ -494,7 +494,7 @@ export default function Landing() {
               <Layers className="w-3 h-3" />
               Simple workflow
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-0 mb-3">Three steps to intelligence</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Three steps to intelligence</h2>
             <p className="text-sm text-gray-500 max-w-xl mx-auto font-mono">
               No training required. Ask a question, let the agents work, get your answer.
             </p>
@@ -530,7 +530,7 @@ export default function Landing() {
             <div className="w-14 h-14 rounded-xl bg-accent-500/20 border border-accent-500/30 flex items-center justify-center mx-auto mb-5">
               <Sparkles className="w-7 h-7 text-accent-400" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-0 mb-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
               Ready to research smarter?
             </h2>
             <p className="text-sm text-gray-500 mb-8 max-w-md mx-auto font-mono">
@@ -538,7 +538,7 @@ export default function Landing() {
             </p>
             <button
               onClick={handleSignIn}
-              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-gray-0 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-black/5 font-mono"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-gray-900 rounded-xl text-[15px] font-semibold hover:bg-gray-100 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/5 font-mono"
             >
               <LogIn className="w-4 h-4" />
               Get started free
