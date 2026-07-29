@@ -467,7 +467,8 @@ export default function Scout() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* ── Input Bar ── */}
+        {/* ── Input Bar (only after conversation starts) ── */}
+        {hasConversation && (
         <div className="p-4 border-t border-gray-800/60 bg-[#0b0c0e]/80 backdrop-blur-sm">
           <div className="max-w-[720px] mx-auto">
             <div className="relative group/input">
@@ -508,6 +509,7 @@ export default function Scout() {
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* ── Workspace Panel (slide-over) ── */}
