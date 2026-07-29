@@ -32,7 +32,7 @@ export interface Company {
 }
 
 const BACKEND_URL =
-  import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+  import.meta.env.VITE_BACKEND_URL || "https://didactic-octo-computing-machine-production.up.railway.app";
 
 export class BackendError extends Error {
   status: number;
@@ -112,7 +112,15 @@ export async function runAgentStream(
   });
 
   if (!response.ok) {
-    throw new BackendError(response.status, "Stream request failed");
+    let detail = "";
+    try {
+      const body = await response.text();
+      detail = body.slice(0, 200);
+    } catch { /* ignore */ }
+    throw new BackendError(
+      response.status,
+      `Stream request failed (${response.status}) — ${url}. ${detail}`.trim(),
+    );
   }
 
   const reader = response.body?.getReader();
